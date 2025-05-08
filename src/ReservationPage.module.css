@@ -1,0 +1,497 @@
+.reservationContainer {
+  min-height: 100vh;
+  background: linear-gradient(to right, #0a0a0a, #1a1a1a);
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.heroSection {
+  background: rgba(5, 5, 5, 0.5);
+  color: white;
+  text-align: center;
+  padding: 30px 0;
+  margin-bottom: 0; /* umesto 20px */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+  
+}
+
+.heroSection h1 {
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0;
+}
+.roomBox {
+  display: flex;
+  flex-direction: row;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: flex-start;
+  border-radius: 12px;
+  padding: 30px;
+  gap: 30px;
+  width: 100%;
+  max-width: 1500px;
+  height: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  flex-wrap: wrap;
+}
+.imageBlurBackground {
+    width: 650px;
+    height: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+  }
+
+.imageBlurBackground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(15px);
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.roomDetails {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background: linear-gradient(to right, #0d0d0d, #1a1a1a); /* gradient pozadina */
+  }
+
+.roomInfo {
+  flex: 1;
+  color: #f1f1f1;
+  padding: 32px;
+  white-space: pre-line;
+  overflow: hidden;
+}
+
+
+.roomInfo h2 {
+  color: #f0c040;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.roomInfo p {
+  font-size: 1.2rem;
+  color: #ccc;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.roomImg {
+    width:100%;
+    max-width: 650px; 
+    height: 500px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0; 
+  }
+  
+/* Dugmići */
+.roomInfo button {
+ background-color: #d4af37;
+  color: black;
+  border: none;
+  padding: 12px 20px;
+  margin-right: 25px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+.buttonGroup {
+  display: flex;
+  justify-content: center;
+  gap: 18px; /* razmak između dugmadi */
+  flex-wrap: wrap; /* da se ne prelamaju ružno na manjim ekranima */
+  margin-top: 20px;
+  color:#ffc107;
+}
+
+.roomInfo button {
+  height: 45px;
+  padding: 14px 28px;
+  font-size: 20px !important;
+  font-weight: 650;
+  background-color: #ffc107 !important;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.roomInfo button:hover {
+  background-color: #e0a800;
+  transform: scale(1.05);
+}
+
+
+
+.roomInfo button:hover {
+  background-color: #b9972c;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .roomDetails {
+    flex-direction: column-reverse;
+    text-align: center;
+  }
+
+  .roomImg {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .roomInfo button {
+    margin-bottom: 10px;
+  }
+}
+
+  /* Dugmadi */
+  .buttons button {
+    background-color: #f0c040;
+    border: none;
+    padding: 20px 20px;
+    margin-right: 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .buttons button:hover {
+    background-color: #d9a820;
+  }
+
+  .datePickerContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  
+  .roomText {
+      transition: all 0.3s ease;
+      color: #ccc;
+      padding-right:30px;
+  }
+  
+  .roomText::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .roomText::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+  }
+
+ 
+  .roomDescription {
+    max-height: 180px; /* Ili koliko želiš da ograničiš vidljivu visinu */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right:10px; /* Da scrollbar ne seče tekst */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #888 transparent; /* Firefox */
+  }
+  
+  /* Chrome, Edge, Safari scroll stil */
+  .roomDescription::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .roomDescription::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .roomDescription::-webkit-scrollbar-thumb {
+    background-color: #555; 
+    border-radius: 10px;
+    border: 1px solid #222; /* Bledi obrub koji se slaže s tamnom temom */
+  }
+  .roomDescriptionFade {
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 85%, rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0));
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+  }
+  /* Stil za labelu i ikonicu kalendara */
+  .dateLabel {
+    font-size: 16px;
+    color: #333;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .calendarIcon {
+    margin-right: 5px;
+    color: #ff6f61;
+    font-size: 1.5rem;
+  }
+  
+  
+  .datePickerInput:focus {
+    border-color: #ff6f61;
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 111, 97, 0.5);
+  }
+
+.modalContent {
+  max-width: 100%; /* Ograničava širinu forme na 90% ekrana */
+  max-height: 90vh; /* Sprečava da modal izađe iz okvira ekrana */
+  overflow-y: auto; /* Omogućava vertikalno skrolovanje */
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 600px;
+}
+.modalOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Form Group */
+.formTwoColumns {
+  display: grid;
+  gap: 20px; /* Razmak između kolona */
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  grid-template-columns: 1fr 1fr
+}
+
+.column {
+  flex: 1; /* Sve kolone dele prostor ravnomerno */
+  min-width: 300px; /* Minimalna širina kolone */
+  max-width: 50%; /* Maksimalna širina kolone */
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column; /* Labele i inputi vertikalno */
+  margin-bottom: 15px; 
+}
+.formTwoColumns .formGroup {
+  display: flex;
+  flex-direction: column; /* Labele i inputi vertikalno */
+  padding-left: 15px;
+}
+
+.formGroup label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.datePickerInput, .numberInput {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Button Group */
+.buttonGroup {
+  display: flex;
+  justify-content: space-between; /* Dugmad poravnata levo i desno */
+  margin-top: 20px;
+}
+
+.formContainer {
+  width: 90%; /* Koristi 90% dostupne širine na manjim ekranima */
+  max-width: 700px; /* Maksimalna širina forme */
+  margin: 0 auto; /* Centriraj formu horizontalno */
+  padding: 20px; /* Dodaj unutrašnje margine */
+  background-color: #f9f9f9; /* Svetla pozadina */
+  border-radius: 8px; /* Zaobljeni uglovi */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Blaga senka */
+}
+
+.buttonGroup button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.buttonGroup button:first-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+.buttonGroup button:last-child {
+  background-color: #f44336;
+  color: white;
+  margin-right: 0;
+}
+
+.buttonGroup button:hover {
+  opacity: 0.9;
+}
+
+/* Ikonica kalendara */
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 10px;
+  color: #777;
+  font-size: 1.5rem; /* Veća ikonica */
+}
+
+.datePickerInput {
+  width: 100%; /* Maksimalna širina */
+  max-width: 800px; /* Produženo polje za unos */
+  padding: 0.5rem 1rem 0.5rem 2.5rem; /* Ostavlja prostor za ikonicu */
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Stilovi za brojač odraslih i dece */
+.counterInput {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+
+.counterButton {
+  color: green;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.counterButtonRed {
+  color: red;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.counterButtonRed:hover {
+  background: #d32f2f; /* Tamnija crvena za hover */
+}
+
+.counterInput span {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 10px;
+}
+
+.progressCircle {
+  display: flex;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+.circleText {
+  font-size: 10px;
+  font-weight: bold;
+  fill: #333;
+  text-anchor: middle;
+}
+.stepIndicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+  width: 50%;
+}
+
+.step {
+  width: 30px;
+  height: 30px;
+  background-color: #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.step.completed {
+  background-color: #4caf50; /* Zelena za završene korake */
+}
+
+.step:nth-child(2) {
+  margin: 0 10px;
+}
+
+.step span {
+  pointer-events: none;
+}
+
+button {
+  margin-top: 20px;
+}
+
+.paymentSection {
+  margin-top: 20px;
+}
+
+.radioGroup label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.prePaymentForm {
+  margin-top: 20px;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
+}
+
+.prePaymentForm .formGroup {
+  margin-bottom: 15px;
+}
+
+.errorText {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}

@@ -1,38 +1,666 @@
+/* Globalno */
+:root {
+  --accent: #d4af37;          /* Zlatna */
+  --text: #faf8f4;            /* Svetla bež bela */
+  --bg-dark: rgba(10, 10, 10, 0.5);
+  --hover: rgba(255, 255, 255, 0.9);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: white;
+  color: #333;
+}
+
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Navigacioni bar */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: rgba(20, 20, 20, 0.4);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  z-index: 1000;
+}
+
+.navbar .logo {
+  font-size: 2.8rem;
+  font-weight: bold;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  margin: 0 20px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-links a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.6rem;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.nav-links a:hover {
+  color: var(--accent);
+}
+
+.nav-links .icon {
+  margin-left: 5px;
+  font-size: 1.6em;
+  color: var(--accent);
+}
+
+/* Hero sekcija */
+.hero-section {
+  height: 100vh;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
   color: white;
+  text-align: center;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
 }
 
-.App-link {
-  color: #61dafb;
+.hero-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+  z-index: 1;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
+.hero-section h1 {
+  position: relative;
+  z-index: 2;
+  font-size: 4rem;
+  font-family: 'Playfair Display', serif;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+}
+
+/* Slider kontrole */
+.slider-controls {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  z-index: 3;
+  padding: 0 20px;
+}
+
+.arrow {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 15px;
+  cursor: pointer;
+  font-size: 20px;
+  color: white;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease, color 0.2s ease;
+  margin: 20px;
+}
+
+.arrow:hover {
+  background-color: var(--hover);
+  color: var(--bg-dark);
+  transform: scale(1.1);
+}
+
+/* Slider tačkice */
+.dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 2;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 1px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.dot.active {
+  background: var(--accent);
+  transform: scale(1.2);
+}
+
+/* Animacija za fade-in */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 1s ease-out forwards;
+}
+
+@keyframes fadeIn {
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+
+
+/* Sadržaj ispod hero sekcije */
+.content {
+  padding: 20px;
+  text-align: left;
+  margin-top: 60px;
+}
+
+.about-section { 
+    /*background: linear-gradient(180deg, #f8f8f8 0%, #ffffff 100%);*/
+    background:
+    linear-gradient(#f0f0f0, #eeeeee),
+    url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
+  background-repeat: repeat;
+    border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  padding: 50px 20px;
+  max-width: 1200px;
+  margin: 50px auto;
+  border-top: 1px solid #2a2727;
+}
+
+.about-part {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dve kolone: tekst i slika */
+  align-items: center; /* Poravnava sadržaj vertikalno */
+  gap: 40px; /* Razmak između kolona */
+  box-sizing: border-box; /* Uključuje padding u širinu elementa */
+  max-width: 100%; /* Ograničena širina sekcije */
+  margin: 0 auto; /* Centriranje sekcije */
+}
+
+.about-part.reverse {
+  grid-template-columns: 1fr 1fr; /* Obrnut redosled */
+  gap: 70px; /* Povećan razmak između kolona (teksta i slike) */
+  max-width: 100%; /* Ograničena širina sekcije */
+  margin: 0 auto;
+}
+
+.about-part.reverse .text {
+  order: 2; /* Tekst dolazi drugi */
+  margin-right:0px; /* Dodajte marginu desno na tekst za još veći razmak od slike */
+
+}
+
+.about-part .text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 20px;
+}
+
+.about-part .text h2 {
+  font-size: 2.5rem;
+  color: #444;
+  margin-bottom: 20px;
+}
+
+.about-part .text p {
+  font-size: 1.2rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.about-part .image {
+  display: flex;
+  justify-content: center; /* Centriranje slike unutar kontejnera */
+  align-items: center; /* Vertikalno poravnanje slike */
+  height: 400px; /* Možete promeniti ovu visinu prema želji, ali mora biti ista u obe sekcije */
+}
+
+.about-part.reverse .image {
+  order: 1; /* Slika dolazi prva */
+}
+.about-part.reverse .image img {
+  height: 400px;  /* Ova visina mora biti ista kao u osnovnoj sekciji */
+  width: 100%;
+  object-fit: cover; /* Osigurava da slika popuni prostor, ali zadrži proporcije */
+}
+
+.about-part .image img {
+  width: 100%;
+  /*max-width: 600px;
+  height: auto;*/
+  height: 400px; /* Postavljanje iste visine za slike (možete promeniti prema želji) */
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.about-section .text {
+  display: flex;
+  flex-direction: column; /* Raspored unutar teksta */
+  justify-content: center; /* Poravnanje teksta po vertikali */
+}
+
+.about-section .text h2 {
+  font-size: 2.5rem;
+  color: #444;
+  margin-bottom: 20px;
+}
+
+.about-section .text p {
+  font-size: 1.2rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.about-section .image {
+  text-align: center; /* Centriranje slike horizontalno */
+}
+
+.about-section .image img {
+  max-width: 100%; /* Održavanje proporcija */
+  height: auto; /* Automatsko prilagođavanje visine */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Sekcije sadržaja */
+section {
+  padding: 50px 20px;
+  margin-bottom: 50px;
+  border-bottom: 1px solid #2a2727;
+  max-width: 1200px; /* Ograničava širinu linije */
+  margin: 0 auto; /* Centriranje sekcije na stranici */
+}
+
+section h2 {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #101010;
+}
+
+/* Prikazivanje soba */
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Dodajte 3 kolone */
+  gap: 20px;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 1200px;
+ /* width: 1300px;*/
+}
+
+.room {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.room img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.room p {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  /*background: rgba(0, 0, 0, 0.6);*/
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  color: white !important;
+  font-size: 1rem;
+  padding: 10px 0;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.room-title {
+  color: white !important;
+  transition: color 0.3s ease;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.room:hover .overlay {
+  opacity: 1;
+}
+
+.overlay button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #d4af37;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transform: translate(-50%, 100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.room:hover .overlay button {
+  transform: translate(-50%, 0);
+  opacity: 1;
+} 
+
+.overlay button:hover {
+  background: #b79422;
+}
+
+.room:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.room:hover img {
+  transform: scale(1.1);
+}
+
+#rooms {
+  text-align: center;
+  padding: 00px 20px;
+  padding-bottom: 30px;
+  margin-top: 50px;
+}
+
+#rooms h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #343434;
+}
+
+#rooms p {
+  font-size: 1.2rem;
+  max-width: 800px;
+  margin: 0 auto 30px;
+  color: #555;
+}
+
+.room-details {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin: 30px auto;
+  padding: 20px;
+  max-width: 1700px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 400px;
+}
+
+.room-details img {
+  width: 600px; /* Fiksirana širina */
+  height: 400px; /* Fiksirana visina */
+  object-fit: cover; /* Održava proporcije slike */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.room-details .room-description {
+  color: #555;
+}
+
+.room-description {
+  flex: 1;
+  text-align: left;
+  white-space: pre-line;
+}
+
+.room-description h3 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.room-description p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #555;
+}
+@media (max-width: 768px) {
+  .rooms-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+.room-description button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #ff6f61;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.room-description button:hover {
+  background: #e55b50;
+}
+
+.details-button {
+  position: absolute;
+  left: 50%;
+  transform:translateX(-50%)  translateY(100%); 
+  bottom: 0;
+  opacity: 0;
+  transition: transform 0.8s ease, opacity 0.8s ease;
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #d4af37;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition-delay: 0.3s;
+}
+
+.room:hover .details-button {
+  transform: translateX(-50%) translateY(-50%);
+  bottom: 50%; 
+  opacity: 1;
+}
+
+.login-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.login-button .icon {
+  margin-right: 5px;
+}
+
+.login-button:hover {
+  color: #d4af37;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content form label {
+  margin-bottom: 5px;
+  text-align: left;
+}
+
+.modal-content form input {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-content form button {
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.modal-content form button:hover {
+  background: #1e40af;
+}
+
+.toggle-form {
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.toggle-form:hover {
+  color: #2563eb;
+}
+
+
+#contact {
+  text-align: center; /* Centriranje sadržaja */
+  padding: 50px 20px; /* Razmak iznad i ispod sekcije */
+  background: rgba(0, 0, 0, 0.6); /* Ista prozirna pozadina kao navigacioni bar */
+  color: white; /* Bela boja teksta za kontrast */
+  border-radius: 10px; /* Zaobljeni uglovi (opciono) */
+  margin: 20px auto; /* Centriranje sekcije na stranici */
+  max-width: 1200px; /* Maksimalna širina sekcije */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Blagi efekat senke */
+}
+
+#contact h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+#contact p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.button-container {
+  display: flex;
+  align-items: center; /* Vertikalno centriranje */
+  gap: 265px; /* Manji razmak između dugmadi */
+}
+
+.reserve-button {
+  background-color: #2563eb !important; /* Svetlo zelena boja */
+  color: white; /* Bela boja teksta */
+  border: none;
+  padding: 10px 20px; /* Ispravljen padding za bolje dimenzije */
+  cursor: pointer;
+  border-radius: 5px; /* Zaobljeni uglovi */
+  font-size: 1rem; /* Optimalna veličina fonta */
+  text-align: center;
+}
+
+.reserve-button:hover {
+  background-color:#1e40af  !important; /* Tamnija zelena boja na hover */
+}
+
+.close-button {
+  font-size: 1rem; /* Usklađena veličina fonta sa rezervišite */
+  background: none; /* Bez pozadine */
+  border: none; /* Bez bordera */
+  cursor: pointer; /* Klikabilnost */
+  color: #333; /* Tamno siva boja */
+}
+
+.close-button:hover {
+  color: #060101; /* Crna boja na hover */
 }

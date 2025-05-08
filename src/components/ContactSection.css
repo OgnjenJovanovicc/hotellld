@@ -1,0 +1,306 @@
+/* NOVI stil za ContactSection.css */
+
+section#contact.contact-section { 
+  background:
+  linear-gradient(#f0f0f0, #eeeeee),
+  url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
+background-repeat: repeat;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1f2937;
+  }
+  
+  .contact-section h2 {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 10px;
+  }
+  
+  .contact-section p {
+    text-align: center;
+    font-size: 1.4rem;
+    color: #1e40af;
+    margin-bottom: 50px;
+  }
+  
+  .contact-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    justify-content: center;
+    align-items: stretch;
+  }
+  
+  .contact-form, .contact-details {
+    flex: 1 1 400px;
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .contact-form:hover, .contact-details:hover {
+    transform: translateY(-5px);
+  }
+  
+  .form-group {
+    margin-bottom: 25px;
+    position: relative;
+    display: block;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #2563eb;
+    font-size: x-large;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    font-size: 1rem;
+    background-color: #f9fafb;
+    transition: 0.3s ease;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #2563eb;
+    background-color: white;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    outline: none;
+  }
+  
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  .submit-btn {
+    background: linear-gradient(90deg, #2563eb, #1e40af);
+    color: white;
+    border: none;
+    padding: 14px 22px;
+    font-weight: 600;
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s ease;
+    font-size: large;
+  }
+  
+  .submit-btn:hover {
+    background: linear-gradient(90deg, #1e40af, #2563eb);
+  }
+  
+  .contact-details h3 {
+    font-size: 1.6rem;
+    margin-top: 18px;
+    color: #2563eb;
+  }
+  
+  .contact-details ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .contact-details li {
+    margin-bottom: 14px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    color: #374151;
+  }
+  
+  .contact-details a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .contact-details a:hover {
+    text-decoration: underline;
+  }
+
+  .map-container iframe {
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border: none;
+    filter: blur(2px);
+    transition: filter 0.5s ease;
+    pointer-events: none;
+  } 
+  .map-container.active iframe {
+    filter: none;
+    pointer-events: all;
+  }
+
+  .map-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+  }
+
+
+  
+  .map-overlay:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .faq-section summary {
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 8px;
+    color: #1e40af;
+    font-size: 1.2rem ;
+  }
+  
+  .faq-section p {
+    font-size: 1.15rem;
+    margin-top: 6px;
+    color: #6b7280;
+    padding-left: 12px;
+  }
+  
+  .social-media {
+    margin-top: 30px;
+  }
+  
+  .social-icons {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+  }
+  
+  .social-icons a {
+    color: #2563eb;
+    font-size: 2.5rem;
+     margin: 0 15px;
+     margin: auto;
+    transition: color 0.3s ease;
+    padding: 6px;
+  
+  }
+  
+  .social-icons a:hover {
+    color: #1d4ed8;
+ 
+  }
+  
+  .map-container {
+    margin-top: 50px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Responsive stil */
+  @media (max-width: 768px) {
+    .contact-container {
+      flex-direction: column;
+    }
+  
+    .contact-form, .contact-details {
+      width: 100%;
+    }
+  
+    .contact-section h2 {
+      font-size: 2.2rem;
+    }
+  
+    .contact-section p {
+      font-size: 1rem;
+    }
+  }
+  .success-message {
+    background-color: #dcfce7;
+    color: #065f46;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  input.error,
+  textarea.error {
+    border: 2px solid #e11d48; /* crvena */
+    outline: none;
+  }
+  
+  .shake {
+    animation: shake 0.4s ease-in-out;
+  }
+  
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+  }
+  
+  /* Error stilovi */
+.form-group.error input,
+.form-group.error textarea {
+  border-color: #e11d48;
+  background-color: #fff1f2;
+}
+
+.error-message {
+  color: #e11d48;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  display: block;
+}
+
+/* Poboljšana shake animacija */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Disabled dugme */
+.submit-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Bolja success poruka */
+.success-message {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 20px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+  border: 1px solid #bbf7d0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
