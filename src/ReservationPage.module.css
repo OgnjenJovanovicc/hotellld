@@ -119,6 +119,8 @@
   color:#ffc107;
 }
 
+
+
 .roomInfo button {
   height: 45px;
   padding: 14px 28px;
@@ -230,6 +232,113 @@
     -webkit-mask-size: 100% 100%;
     -webkit-mask-repeat: no-repeat;
   }
+  .amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    color: #ccc;
+    font-size: 0.9rem;
+  }
+  .amenities div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .reviews {
+    margin-top: 1.2rem;
+    color: #aaa;
+    font-size: 0.85rem;
+  }
+  .reviews blockquote {
+    margin: 0.5rem 0 0;
+    font-style: italic;
+    border-left: 3px solid #555;
+    padding-left: 0.5rem;
+  }
+
+  .priceBox {
+    margin-top: 1rem;
+    color: #fff;
+    font-size: 0.95rem;
+  }
+  .morePricing {
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    color: #facc15;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .morePricing:hover {
+    color: #ffd600;
+  }
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  
+  .modalContent1 {
+    background-color: #1f1f1f ;
+    color: #f1f1f1 ;
+    padding: 24px ;
+    border-radius: 12px ;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) ;
+    width: 90% ;
+    max-width: 400px ;
+    transition: all 0.3s ease-in-out mportant;
+  }
+  
+  .modalContent1 h3 {
+    margin-top: 0 ;
+    margin-bottom: 1rem ;
+    font-size: 1.3rem ;
+    color: #facc15 ;
+  }
+  
+  .modalContent1 p {
+    margin-bottom: 0.5rem ;
+    font-size: 0.95rem ;
+    color: #ccc ;
+  }
+  
+  .modalContent1 button {
+    background-color: #f7c600 ;
+    color: #000 ;
+    font-weight: bold ;
+    border: none ;
+    padding: 10px 18px ;
+    border-radius: 8px ;
+    margin-top: 16px ;
+    cursor: pointer ;
+    transition: background-color 0.2s ease-in-out ;
+  }
+  
+
+  .modalContent1 button:hover {
+    background-color: #e6b800 !important;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  
   /* Stil za labelu i ikonicu kalendara */
   .dateLabel {
     font-size: 16px;
@@ -261,6 +370,7 @@
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 600px;
+  color: #000;
 }
 .modalOverlay {
   display: flex;
@@ -318,9 +428,45 @@
 
 /* Button Group */
 .buttonGroup {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: background 0.3s ease;
+  
+}
+.buttonRow {
   display: flex;
-  justify-content: space-between; /* Dugmad poravnata levo i desno */
-  margin-top: 20px;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.equalButton {
+  flex: 1;
+  height: 48px;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.cancelButton {
+  background-color: #f44336 !important; /* crvena */
+  color: white !important;
+  border: none !important;
+}
+
+.submitButton{
+background-color: #4CAF50 !important;
+color: white !important;
+border: none !important;
+}
+
+.cancelButton:hover {
+  background-color: #d32f2f !important;
+}
+
+.finishButton{
+  background-color: #4CAF50 !important;
+  color: white !important;
+  border: none !important;
 }
 
 .formContainer {
@@ -344,7 +490,7 @@
 }
 
 .buttonGroup button:first-child {
-  background-color: #4caf50;
+  background-color: #4CAF50;
   color: white;
 }
 
@@ -356,6 +502,18 @@
 
 .buttonGroup button:hover {
   opacity: 0.9;
+}
+.disabledButton {
+  background-color: #cccccc !important;
+  color: #666666 !important;
+  cursor: not-allowed;
+  width: 150px;
+}
+
+.activeButton {
+  background-color: #4caf50 !important;
+  color: white !important;
+  width: 150px;
 }
 
 /* Ikonica kalendara */

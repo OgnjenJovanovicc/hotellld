@@ -6,6 +6,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 import styles from './ReservationPage.module.css';
+import Tooltip from '@mui/material/Tooltip';
 
 const ReservationPage = () => {
   const location = useLocation();
@@ -20,6 +21,7 @@ const ReservationPage = () => {
   const [paymentOption, setPaymentOption] = useState('naknadno');
   const [isFormVisible, setFormVisible] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [userData, setUserData] = useState({
     firstName: '',
     lastName: '',
@@ -69,6 +71,7 @@ const ReservationPage = () => {
       setError(""); // Resetuj grešku ako su datumi ispravni
     }
   };
+  
 
   function Reservation({ room }) {
    }
@@ -83,6 +86,12 @@ const ReservationPage = () => {
       <div className={styles.roomBox}>
         <img className={styles.roomImg} src={room.img} alt={room.title} />
         <div className={styles.roomInfo}>
+        <div className={styles.amenities}>
+        {room?.amenities?.map((item, index) => (
+  <div key={index}>{item}</div>
+))}
+
+</div>
           <h2>{room.title}</h2>
           <div className={`${styles.roomText} ${showMore ? styles.scrollText : ""}`}>
               {showMore ? (
@@ -92,6 +101,32 @@ const ReservationPage = () => {
               <p>{room.description}</p>
                 )}
           </div>
+          <div className={styles.priceBox}>
+          Cena:  <strong>{room.price}€</strong> po noći
+          <a onClick={() => setShowPricingModal(true)} className={styles.morePricing}>
+  Detalji o cenama
+</a>
+          </div>
+          <div className={styles.reviews}>
+          {room?.reviews && (
+  <div>⭐ {room.reviews.rating} ({room.reviews.count} recenzija)</div>
+)}
+        {room?.reviews?.comment && (
+  <blockquote>"{room.reviews.comment}"</blockquote>
+)}
+      </div>
+      {showPricingModal && (
+  <div className={styles.modalOverlay} onClick={() => setShowPricingModal(false)}>
+    <div className={styles.modalContent1} onClick={(e) => e.stopPropagation()}>
+      <h3> <a onClick={() => setShowPricingModal(true)} className={styles.morePricing}>
+</a>Detalji o cenama</h3>
+<p>- Standardna cena: {room.price}€ po noći</p>
+<p>- Vikendom: {room.weekendPrice}€ po noći</p>
+<p>- Popust za 7+ noći: {room.discount}</p>
+      <button onClick={() => setShowPricingModal(false)}>Zatvori</button>
+    </div>
+  </div>
+)}
           <div className={styles.buttonGroup}>
           <button onClick={() => setShowMore(!showMore)}>
             {showMore ? "Prikaži manje" : "Saznaj više"}
@@ -353,27 +388,38 @@ const ReservationPage = () => {
 
 
       {/* Dugmad za navigaciju */}
-      <div className={styles.buttonGroup}>
+      <div className={styles.buttonRow}>
   {currentStep > 1 && currentStep < 3 && (
     <Button
+      className={styles.equalButton}
       variant="outlined"
-      color="secondary"
       onClick={() => setCurrentStep(currentStep - 1)}
     >
       Nazad
     </Button>
   )}
+
   {currentStep < 3 && (
-    <Button type="submit" disabled={!!error}
-      variant="contained"
-      color="primary"
-      onClick={handleNextStep}
-    >
-      Sledeći korak
-    </Button>
+    <Tooltip title={error || 'Unesite ispravne datume'}>
+      <span className={styles.equalButton}>
+        <Button
+          className={`${styles.equalButton} ${styles.submitButton}`}
+          variant="contained"
+          color="primary"
+          type="submit"
+          onClick={handleNextStep}
+          disabled={!startDate || !endDate || !!error}
+          fullWidth
+        >
+          Sledeći korak
+        </Button>
+      </span>
+    </Tooltip>
   )}
+
   {currentStep === 3 && (
-    <Button 
+    <Button
+    className={`${styles.equalButton} ${styles.finishButton}`}
       variant="contained"
       color="primary"
       onClick={handleConfirmReservation}
@@ -381,16 +427,18 @@ const ReservationPage = () => {
       Potvrdi rezervaciju
     </Button>
   )}
-  <Button 
-    variant="outlined"
-    color="secondary"
+
+  <Button
+    className={`${styles.equalButton} ${styles.cancelButton}`}
     onClick={() => setFormVisible(false)}
   >
     Odustani
   </Button>
 </div>
+
+</div>
     </div>
-  </div>
+
 )}
 
     </div>
