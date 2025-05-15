@@ -130,6 +130,7 @@ function App() {
       id: 1,
       img: krevet1,
       title: "Soba 1",
+      type:"Luksuz",
       description: "-Luksuzna soba sa jednim velikim krevetom i prelepim pogledom.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
       longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
       price: 45,

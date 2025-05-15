@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -7,16 +7,22 @@ import Button from '@mui/material/Button';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 import styles from './ReservationPage.module.css';
 import Tooltip from '@mui/material/Tooltip';
+import  {LinearProgress, Box, Typography } from '@mui/material';
 
 const ReservationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { room } = location.state || {};
+  const { state } = useLocation();
+  const room = state?.room;
+ //  const { room } = location.state || {};
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [reservationStartMessage, setReservationStartMessage] = useState("");
+  const [reservationEndMessage, setReservationEndMessage]=useState("");
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [adults, setAdults] = useState(1);
+  const [bookedDates, setBookedDates] = useState([]);
   const [children, setChildren] = useState(0);
   const [paymentOption, setPaymentOption] = useState('naknadno');
   const [isFormVisible, setFormVisible] = useState(false);
@@ -31,7 +37,98 @@ const ReservationPage = () => {
     confirmEmail: '',
     additionalInfo: ''
   });
+  const roomType = room?.room_type || room?.type;
 
+const shouldDisableDate = (date) => {
+  if (!bookedDates || !bookedDates.length) return false;
+  
+  // Konvertujemo Date objekat u string u formatu YYYY-MM-DD
+  const dateStr = date.toISOString().split('T')[0];
+  
+  // Proveravamo da li se nalazi u nizu stringova
+  return bookedDates.includes(dateStr);
+};
+  
+useEffect(() => {
+  console.log('Room objekat:', room);
+console.log('Dostupni propertyji:', Object.keys(room || {}));
+  console.log('useEffect se izvršava', room?.type);
+  if (!roomType) {
+    console.error('Nedostaje tip sobe');
+    return;
+  }
+  const fetchBookedDates = async () => {
+    console.log('Početak slanja zahteva');
+    if (!room?.type) return; // Koristimo room.type umesto room.id
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/reservations/${room.type}`,{
+    //  const response = await fetch(`/api/reservations/${room.type}`, {
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+});
+   //const response = await fetch(`http://localhost:3001/api/reservations/${room.type}`);
+      //const response = await fetch(`/api/reservations/${room.type}`);
+      console.log('Odgovor primljen', response);
+     
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Dobijeni podaci:", data);
+      if (!Array.isArray(data)) {
+        throw new Error('Očekivan je niz datuma');
+      }
+      setBookedDates(data); // Backend već vraća niz stringova
+    } catch (error) {
+      console.error('Greška prilikom učitavanja zauzetih datuma:', error);
+      const errorResponse = await fetch(`/api/reservations/${room.type}`);
+      const text = await errorResponse.text();
+      console.error("Puni odgovor servera:", text);
+    }
+  };
+
+/*const fetchBookedDates = async () => {
+  try {
+    // Provera postojanja room.type
+    if (!room?.type) {
+      throw new Error('room.type nije definisan');
+    }
+
+    const url = `http://localhost:3001/api/reservations/${encodeURIComponent(room.type)}`;
+    console.log('Šaljem zahtev na:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Dobijeni datumi:', data);
+    setBookedDates(data);
+    
+  } catch (error) {
+    console.error('Došlo je do greške:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+  }
+};
+  */
+    fetchBookedDates();
+  }, [room.type]);
+  
+ // Promenite dependency u room.type
   if (!room) {
     return (
       <div>
@@ -65,13 +162,27 @@ const ReservationPage = () => {
     setCurrentStep(step);
   };
   const validateDates = (start, end) => {
-    if (new Date(start) > new Date(end)) {
+    if (start && end && new Date(start) > new Date(end)) {
       setError("Datum početka ne može biti veći od datuma kraja.");
     } else {
       setError(""); // Resetuj grešku ako su datumi ispravni
     }
   };
-  
+  const calculateTotalPrice = () => {
+    if (!startDate || !endDate) return 0;
+    
+    // Izračunavanje broja dana
+    const timeDiff = endDate.getTime() - startDate.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 da uključi i početni dan
+    
+    // Cena po osobi po danu
+    const pricePerAdultPerDay = 50;
+    const pricePerChildPerDay = 25;
+    
+    // Ukupna cena
+    return (adults * pricePerAdultPerDay + children * pricePerChildPerDay) * daysDiff;
+  };
+  const totalPrice=calculateTotalPrice();
 
   function Reservation({ room }) {
    }
@@ -93,7 +204,7 @@ const ReservationPage = () => {
 
 </div>
           <h2>{room.title}</h2>
-          <div className={`${styles.roomText} ${showMore ? styles.scrollText : ""}`}>
+          <div className={`${styles.roomText} ${showMore ? styles.expanded : styles.scrollText}`}>
               {showMore ? (
               <p className={`${styles.roomDescription} ${styles.roomDescriptionFade}`}>
                 {room.longDescription}</p>
@@ -146,28 +257,25 @@ const ReservationPage = () => {
   <div className={styles.modalOverlay}>
     <div className={styles.modalContent}>
       {/* Kružni indikator */}
-      <div className={styles.stepIndicator}>
-        <div className={styles.steps}>
-          <div
-            className={`${styles.step} ${currentStep >= 1 ? styles.completed : ''}`}
-            onClick={() => handleStepClick(1)}
-          >
-            <span>1</span>
-          </div>
-          <div
-            className={`${styles.step} ${currentStep >= 2 ? styles.completed : ''}`}
-            onClick={() => handleStepClick(2)}
-          >
-            <span>2</span>
-          </div>
-          <div
-            className={`${styles.step} ${currentStep >= 3 ? styles.completed : ''}`}
-            onClick={() => handleStepClick(3)}
-          >
-            <span>3</span>
-          </div>
-        </div>
-      </div>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} px={2}>
+  <Box flex={1} mr={2}>
+    <LinearProgress
+      variant="determinate"
+      value={(currentStep - 1) * 50}
+      className={styles.animatedProgress}
+  sx={{
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#e0e0e0',
+    '& .MuiLinearProgress-bar': {
+      backgroundColor: '#4CAF50',
+     animation: `${styles.blink} 1.9s ease`,
+    },
+  }}
+/>
+  </Box>
+ 
+</Box>
 
       {/* Korak 1 */}
       {currentStep === 1 && (
@@ -178,12 +286,52 @@ const ReservationPage = () => {
             <DatePicker
               value={startDate} // ili selected={startDate} za `react-datepicker`
               onChange={(date) => {
+                
               setStartDate(date); // Direktno postavljamo `date`
               validateDates(date, endDate); // Proveravamo validnost datuma
-            }}
-            renderInput={(params) => <TextField {...params} fullWidth />}
+             
+              if (date) {
+                const dateWithTime = new Date(date);
+                dateWithTime.setHours(7, 0, 0, 0);
+                
+                // Formatirajte datum na srpskom
+                const options = { 
+                  day: 'numeric', 
+                  month: 'long', 
+                  year: 'numeric' 
+                };
+                const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
+                setReservationStartMessage(`Rezervacija važi od ${formattedDate} od 7:00`);
+              } else {
+                setReservationStartMessage("");
+              }
+            }  
+          }
+            renderInput={(params) => <TextField {...params} fullWidth />}   
+          /*  shouldDisableDate={(date) =>
+              bookedDates.some(booked =>
+                date.getFullYear() === booked.getFullYear() &&
+                date.getMonth() === booked.getMonth() &&
+                date.getDate() === booked.getDate()
+              )
+            }*/
+            shouldDisableDate={shouldDisableDate}
           />
+   {reservationStartMessage && (
+        <div style={{
+          marginTop: '10px',
+          padding: '8px',
+          backgroundColor: 'rgba(25, 25, 25, 0.4)',
+          borderLeft: '3px solid rgba(0, 0, 0, 0.76)',
+          color: 'white',
+          borderRadius: '4px',
+          fontSize: '0.9rem'
+        }}>
+          {reservationStartMessage}
+        </div>
+    )}
           </div>
+
           <div className={styles.formGroup}>
             <label>Datum kraja:</label>
             <DatePicker
@@ -191,9 +339,39 @@ const ReservationPage = () => {
               onChange={(date) => {
               setEndDate(date); // Direktno postavljamo `date`
               validateDates(startDate, date); // Proveravamo validnost datuma
-              }}
+              if (date) {
+                const dateWithTime = new Date(date);
+                dateWithTime.setHours(22, 0, 0, 0);
+                
+                // Formatirajte datum na srpskom
+                const options = { 
+                  day: 'numeric', 
+                  month: 'long', 
+                  year: 'numeric' 
+                };
+                const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
+                setReservationEndMessage(`Rezervacija važi od ${formattedDate} do 22:00`);
+              } else {
+                setReservationEndMessage("");
+              }
+            }}
+            
             renderInput={(params) => <TextField {...params} fullWidth />}
+            shouldDisableDate={shouldDisableDate}
             />
+             {reservationEndMessage && (
+        <div style={{
+          marginTop: '10px',
+          padding: '8px',
+          backgroundColor: 'rgba(25, 25, 25, 0.4)',
+          borderLeft: '3px solid rgba(0, 0, 0, 0.76)',
+          color: 'white',
+          borderRadius: '4px',
+          fontSize: '0.9rem'
+        }}>
+          {reservationEndMessage}
+        </div>
+             )}
           </div>
           {error && <p className={styles.errorText}>{error}</p>}
           <div className={styles.formGroup}>
@@ -210,6 +388,7 @@ const ReservationPage = () => {
           </div>
           <div className={styles.formGroup}>
             <label>Broj dece:</label>
+            <div className={styles.counterRow}>
             <div className={styles.counterInput}>
               <button onClick={() => setChildren(children > 0 ? children - 1 : 0)} className={styles.counterButtonRed}>
                 <FaMinus />
@@ -219,8 +398,12 @@ const ReservationPage = () => {
                 <FaPlus />
               </button>
             </div>
+          <div className={styles.totalPrice}>
+           <div>Ukupna cena: </div> <strong className={styles.priceHighlight}>{totalPrice}€</strong>
           </div>
-        </LocalizationProvider>
+          </div>  
+          </div>
+          </LocalizationProvider>
         </div>
       )}
 
@@ -316,11 +499,14 @@ const ReservationPage = () => {
    <div className={styles.formContainer}>
     <h3>Forma 3: Potvrda rezervacije i realizacija plaćanja</h3>
     <p>Pregled rezervacije:</p>
-    <ul>
+    <ul className={styles.summaryList}>
       <li><strong>Početak:</strong> {startDate?.toLocaleDateString()}</li>
       <li><strong>Kraj:</strong> {endDate?.toLocaleDateString()}</li>
       <li><strong>Odrasli:</strong> {adults}</li>
       <li><strong>Deca:</strong> {children}</li>
+      <li className={styles.totalPrice}>
+      <strong>UKUPNO:</strong> <span className={styles.priceHighlight}>{totalPrice}€</span>
+    </li>
     </ul>
 
     <div className={styles.paymentSection}>
@@ -402,7 +588,7 @@ const ReservationPage = () => {
   {currentStep < 3 && (
     <Tooltip title={error || 'Unesite ispravne datume'}>
       <span className={styles.equalButton}>
-        <Button
+       {/*<Button
           className={`${styles.equalButton} ${styles.submitButton}`}
           variant="contained"
           color="primary"
@@ -412,7 +598,20 @@ const ReservationPage = () => {
           fullWidth
         >
           Sledeći korak
-        </Button>
+        </Button>*/}
+        <Button
+          className={`${styles.equalButton} ${styles.submitButton} ${
+          (!startDate || !endDate || new Date(startDate) > new Date(endDate)) ? styles.disabledNextButton : ''
+          }`}
+            variant="contained"
+            color="primary"
+            type="submit"
+            onClick={handleNextStep}
+            disabled={!startDate || !endDate || new Date(startDate) > new Date(endDate)}
+            fullWidth
+             > 
+             Sledeći korak
+            </Button>
       </span>
     </Tooltip>
   )}

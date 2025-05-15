@@ -31,9 +31,12 @@
   gap: 30px;
   width: 100%;
   max-width: 1500px;
-  height: 500px;
+  height: auto;
+  max-height: 530px;
+  min-height: 500px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow: hidden; /* Sprečava izlivanje */
 }
 .imageBlurBackground {
     width: 650px;
@@ -70,6 +73,9 @@
   padding: 32px;
   white-space: pre-line;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 
@@ -116,7 +122,10 @@
   gap: 18px; /* razmak između dugmadi */
   flex-wrap: wrap; /* da se ne prelamaju ružno na manjim ekranima */
   margin-top: 20px;
+  padding-top: 20px;
   color:#ffc107;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  align-items: center;
 }
 
 
@@ -132,6 +141,8 @@
   border-radius: 15px;
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.3s ease;
+  align-self: flex-start; /* Ovo će sprečiti širenje */
+  margin-top: 15px; /* Dodajemo malo prostora */
 }
 
 .roomInfo button:hover {
@@ -186,11 +197,21 @@
   }
   
   .roomText {
+      flex: 1;
+      overflow-y: hidden;
       transition: all 0.3s ease;
       color: #ccc;
       padding-right:30px;
   }
+  .roomText.expanded {
+    overflow-y: auto; /* Omogućava scroll kada je prošireno */
+    max-height: 400px; /* Ograničava maksimalnu visinu */
+  }
   
+  .roomText.expanded::-webkit-scrollbar {
+    width: 6px;
+  }
+
   .roomText::-webkit-scrollbar {
     width: 6px;
   }
@@ -198,6 +219,9 @@
   .roomText::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 4px;
+  }
+  .scrollText {
+    max-height: 300px; /* Početna visina pre klika */
   }
 
  
@@ -468,7 +492,25 @@ border: none !important;
   color: white !important;
   border: none !important;
 }
+.progressWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 16px;
+}
 
+.progressBarContainer {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.priceText {
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+}
 .formContainer {
   width: 90%; /* Koristi 90% dostupne širine na manjim ekranima */
   max-width: 700px; /* Maksimalna širina forme */
@@ -478,7 +520,7 @@ border: none !important;
   border-radius: 8px; /* Zaobljeni uglovi */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Blaga senka */
 }
-
+/*
 .buttonGroup button {
   flex: 1;
   padding: 0.5rem 1rem;
@@ -487,6 +529,23 @@ border: none !important;
   border-radius: 4px;
   cursor: pointer;
   margin-right: 10px;
+}*/
+.buttonGroup button, 
+.buttonGroup a {
+  height: 45px; /* Fiksna visina */
+  padding: 14px 28px;
+  font-size: 20px !important;
+  font-weight: 650;
+  background-color: #ffc107 !important;
+  color: white !important;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .buttonGroup button:first-child {
@@ -503,11 +562,16 @@ border: none !important;
 .buttonGroup button:hover {
   opacity: 0.9;
 }
-.disabledButton {
-  background-color: #cccccc !important;
-  color: #666666 !important;
-  cursor: not-allowed;
-  width: 150px;
+.disabledNextButton {
+  background-color: #6c757d !important;
+  color: white !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+.disabledNextButton:hover {
+  background-color: #6c757d !important;
+  transform: none !important;
 }
 
 .activeButton {
@@ -522,6 +586,78 @@ border: none !important;
   display: flex;
   align-items: center;
 }
+
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.animatedProgress {
+  transition: all 0.3s ease-in-out;
+}
+
+.blink {
+  animation: blink 0.5s ease-in-out;
+}
+.priceTag {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.totalPrice {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #4CAF50;
+}
+.counterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.totalPriceInline {
+  margin-left: auto;
+  font-weight: bold;
+  color: #4CAF50;
+  padding-left: 20px;
+  white-space: nowrap;
+}
+.totalPrice {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  text-align: center;
+  color: #fff;
+}
+
+.totalPrice strong {
+  font-size: 1.8rem;
+  color: #ffc107; /* Žuta boja za istaknute cene */
+  margin-left: 5px;
+}
+
+.priceHighlight {
+  animation: pricePulse 1.5s infinite alternate;
+}
+
+@keyframes pricePulse {
+  from {
+    transform: scale(1);
+    text-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+  }
+  to {
+    transform: scale(1.05);
+    text-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+  }
+}
+
 
 .inputIcon {
   position: absolute;
@@ -653,3 +789,23 @@ button {
   font-size: 0.9rem;
   margin-top: 5px;
 }
+.summaryList {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.summaryList li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+}
+
+.summaryList li:last-child {
+  border-bottom: none;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid rgba(255, 193, 7, 0.3);
+}
+
