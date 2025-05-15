@@ -2,17 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const { Client } = require('pg');
 const { Pool } = require('pg');
-require('dotenv').config(); // Učitavanje konfiguracija iz .env fajla
+const router = express.Router();
 
 // Kreiranje Express aplikacije
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Omogućite CORS za sve rute
+require('dotenv').config(); // Učitavanje konfiguracija iz .env fajla
 app.use(cors());
 
 // Middleware za parsiranje JSON-a u request-u
 app.use(express.json());
+
+
 
 // Postavljanje PostgreSQL klijenta
 const client = new Client({
@@ -161,3 +163,40 @@ app.post('/api/contact', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+app.get('/api/reservations/:roomType', async (req, res) => {
+  const { roomType } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT r.start_date, r.end_date
+       FROM reservations r
+       JOIN rooms ro ON r.room_id = ro.room_id
+       WHERE ro.room_type = $1
+       AND r.end_date >= CURRENT_DATE`, // Samo aktivne/buduće rezervacije
+      [roomType]
+    );
+
+    // Koristimo Set da izbegnemo duplikate
+    const bookedDatesSet = new Set();
+
+    result.rows.forEach(({ start_date, end_date }) => {
+      const start = new Date(start_date);
+      const end = new Date(end_date);
+      
+      // Prolazimo kroz sve datume između start_date i end_date
+      for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+        const dateString = date.toISOString().split('T')[0];
+        bookedDatesSet.add(dateString);
+      }
+    });
+
+    // Konvertujemo Set u niz i sortiramo datume
+    const bookedDates = Array.from(bookedDatesSet).sort();
+
+    res.json(bookedDates);
+  } catch (error) {
+    console.error('Greška pri dohvatanju zauzetih datuma:', error);
+    res.status(500).json({ error: 'Greška pri dohvatanju rezervacija' });
+  }
+});
+
