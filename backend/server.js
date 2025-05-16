@@ -113,7 +113,7 @@ app.get('/api/rooms/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch room' });
   }
 });
-
+/*
 app.post('/api/reservations', async (req, res) => {
   const { roomId, userId, reservationDate } = req.body;
 
@@ -127,7 +127,8 @@ app.post('/api/reservations', async (req, res) => {
     console.error('Error creating reservation:', err.stack);
     res.status(500).json({ error: 'Failed to create reservation' });
   }
-});
+});*/
+
 
 
 app.get('/api/test', (req, res) => {
@@ -199,4 +200,153 @@ app.get('/api/reservations/:roomType', async (req, res) => {
     res.status(500).json({ error: 'Greška pri dohvatanju rezervacija' });
   }
 });
+/*
+app.post('/api/reservations', async (req, res) => {
+  console.log('Primljeni podaci:', req.body); // Dodajte log za debagovanje
+  
+  const { room_id, start_date, end_date, adults, children, guest_info } = req.body;
 
+  // Validacija podataka
+  if (!room_id || !start_date || !end_date || !adults || !guest_info) {
+    console.error('Nedostaju obavezni podaci');
+    return res.status(400).json({ error: 'Nedostaju obavezni podaci' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO reservations 
+       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [
+        room_id,
+        start_date,
+        end_date,
+        adults,
+        children || 0,
+        calculateTotalPrice(room_id, start_date, end_date, adults, children), // Dodajte ovu funkciju
+        'pending',
+        guest_info.firstName + ' ' + guest_info.lastName,
+        guest_info.email,
+        guest_info.phone
+      ]
+    );
+
+    console.log('Uspešno sačuvana rezervacija:', result.rows[0]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Greška pri čuvanju rezervacije:', error);
+    res.status(500).json({ 
+      error: 'Došlo je do greške pri čuvanju rezervacije',
+      details: error.message 
+    });
+  }
+});*/
+/*
+// Pomocna funkcija za izračunavanje cene
+function calculateTotalPrice(startDate, endDate, adults, children) {
+  if (!startDate || !endDate) return 0;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Računanje razlike u danima (uključuje i prvi dan)
+  const timeDiff = end.getTime() - start.getTime();
+  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+
+  // Cena po osobi po danu (možeš ovo izvući iz baze ako treba)
+  const pricePerAdultPerDay = 50;
+  const pricePerChildPerDay = 25;
+
+  const totalPrice =
+    daysDiff * (adults * pricePerAdultPerDay + (children || 0) * pricePerChildPerDay);
+
+  return totalPrice;
+}*/
+
+
+app.post('/api/reservations', async (req, res) => {
+  console.log('📥 Primljeni podaci:', req.body);
+
+  const { room_id, start_date, end_date, adults, children, guest_info } = req.body;
+
+  // ✅ Validacija osnovnih polja
+  if (!room_id || !start_date || !end_date || !adults || !guest_info) {
+    console.error('❌ Nedostaju obavezni podaci');
+    return res.status(400).json({ error: 'Nedostaju obavezni podaci' });
+  }
+
+  // ✅ Validacija guest_info polja
+  if (
+    !guest_info.firstName ||
+    !guest_info.lastName ||
+    !guest_info.email ||
+    !guest_info.phone
+  ) {
+    console.error('❌ Nepotpuni podaci o gostu');
+    return res.status(400).json({ error: 'Nepotpuni podaci o gostu' });
+  }
+
+  // ✅ Parsiranje i provera datuma
+  const start = new Date(start_date);
+  const end = new Date(end_date);
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    console.error('❌ Neispravan format datuma');
+    return res.status(400).json({ error: 'Neispravan format datuma' });
+  }
+
+  if (end < start) {
+    console.error('❌ Datum kraja je pre datuma početka');
+    return res.status(400).json({ error: 'Datum kraja mora biti posle datuma početka' });
+  }
+
+  // ✅ Izračunavanje ukupne cene
+  const total_price = calculateTotalPrice(start, end, adults, children);
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO reservations 
+       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [
+        room_id,
+        start.toISOString().split('T')[0],
+        end.toISOString().split('T')[0],
+        adults,
+        children || 0,
+        total_price,  
+        "Confirmed",
+      `${guest_info.firstName} ${guest_info.lastName}`,
+        guest_info.email,
+        guest_info.phone
+      ]
+    );
+
+    console.log('✅ Uspešno sačuvana rezervacija:', result.rows[0]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+  console.error('Greška pri čuvanju rezervacije:', error);
+  res.status(500).json({ 
+    error: 'Ovo e greska', // možeš promeniti poruku
+    details: error.message, // dodaj i ovo da vidiš tačan error na frontu/Postmanu
+      stack: error.stack
+  });
+}
+});
+
+
+// ✅ Funkcija za izračunavanje cene
+function calculateTotalPrice(start, end, adults, children = 0) {
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysDiff = Math.ceil((end - start) / msPerDay) + 1;
+
+  const pricePerAdultPerDay = 50;
+  const pricePerChildPerDay = 25;
+
+  const totalPrice = daysDiff * (adults * pricePerAdultPerDay + children * pricePerChildPerDay);
+
+  console.log(`💰 Ukupna cena (${daysDiff} dana): ${totalPrice}`);
+  return totalPrice;
+}

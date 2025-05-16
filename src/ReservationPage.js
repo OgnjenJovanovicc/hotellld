@@ -22,6 +22,7 @@ const ReservationPage = () => {
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [adults, setAdults] = useState(1);
+  const[total_price,setTotalPrice]=useState(0);
   const [bookedDates, setBookedDates] = useState([]);
   const [children, setChildren] = useState(0);
   const [paymentOption, setPaymentOption] = useState('naknadno');
@@ -91,42 +92,45 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
     }
   };
 
-/*const fetchBookedDates = async () => {
-  try {
-    // Provera postojanja room.type
-    if (!room?.type) {
-      throw new Error('room.type nije definisan');
-    }
-
-    const url = `http://localhost:3001/api/reservations/${encodeURIComponent(room.type)}`;
-    console.log('Šaljem zahtev na:', url);
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Dobijeni datumi:', data);
-    setBookedDates(data);
-    
-  } catch (error) {
-    console.error('Došlo je do greške:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-  }
-};
-  */
     fetchBookedDates();
   }, [room.type]);
+  const handleConfirmReservation1 = async () => {
+  try {
+    // Provera da li su svi potrebni podaci prisutni
+    if (!room?.id || !startDate || !endDate || !userData.firstName || !userData.email) {
+      throw new Error('Nedostaju obavezni podaci za rezervaciju');
+    }
+
+    const response = await fetch('http://localhost:5000/api/reservations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        room_id: room.id,
+        start_date: startDate.toISOString().split('T')[0], // Samo datum bez vremena
+        end_date: endDate.toISOString().split('T')[0],
+        adults,
+        children,
+        guest_info: userData
+      })
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Ako backend vraća detalje o grešci
+      throw new Error(data.error || 'Došlo je do greške pri čuvanju rezervacije');
+    }
+
+    alert(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
+    setFormVisible(false);
+    
+  } catch (error) {
+    console.error('Greška:', error);
+    alert(error.message || 'Došlo je do greške pri čuvanju rezervacije. Pokušajte ponovo.');
+  }
+};
   
  // Promenite dependency u room.type
   if (!room) {
@@ -182,6 +186,8 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
     // Ukupna cena
     return (adults * pricePerAdultPerDay + children * pricePerChildPerDay) * daysDiff;
   };
+
+  
   const totalPrice=calculateTotalPrice();
 
   function Reservation({ room }) {
@@ -308,13 +314,6 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
             }  
           }
             renderInput={(params) => <TextField {...params} fullWidth />}   
-          /*  shouldDisableDate={(date) =>
-              bookedDates.some(booked =>
-                date.getFullYear() === booked.getFullYear() &&
-                date.getMonth() === booked.getMonth() &&
-                date.getDate() === booked.getDate()
-              )
-            }*/
             shouldDisableDate={shouldDisableDate}
           />
    {reservationStartMessage && (
@@ -621,7 +620,7 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
     className={`${styles.equalButton} ${styles.finishButton}`}
       variant="contained"
       color="primary"
-      onClick={handleConfirmReservation}
+      onClick={handleConfirmReservation1}
     >
       Potvrdi rezervaciju
     </Button>

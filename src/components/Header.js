@@ -18,7 +18,7 @@ const Header = ({ user, openModal, handleLogout }) => {
         ) : (
           <li>
             <button className="login-button" onClick={openModal}>
-              <FaSignInAlt className="icon" /> Login
+              <FaSignInAlt className="icon"  /> Login
             </button>
           </li>
         )}

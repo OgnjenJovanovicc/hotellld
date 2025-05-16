@@ -31,6 +31,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text);
   z-index: 1000;
+  height:80px;
 }
 
 .navbar .logo {
@@ -43,7 +44,8 @@ body {
 .nav-links {
   list-style: none;
   display: flex;
-  margin: 0;
+  margin: 0; 
+  margin-right: 15px;
   padding: 0;
 }
 
@@ -60,6 +62,7 @@ body {
   transition: color 0.3s ease;
   display: flex;
   align-items: center;
+  margin-top: 17px;
 }
 
 .nav-links a:hover {
@@ -188,7 +191,6 @@ body {
 }
 
 .about-section { 
-    /*background: linear-gradient(180deg, #f8f8f8 0%, #ffffff 100%);*/
     background:
     linear-gradient(#f0f0f0, #eeeeee),
     url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
@@ -263,9 +265,7 @@ body {
 
 .about-part .image img {
   width: 100%;
-  /*max-width: 600px;
-  height: auto;*/
-  height: 400px; /* Postavljanje iste visine za slike (možete promeniti prema želji) */
+ height: 400px; /* Postavljanje iste visine za slike (možete promeniti prema želji) */
   object-fit: cover;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
