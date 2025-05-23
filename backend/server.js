@@ -45,13 +45,13 @@ app.get('/', (req, res) => {
 
 // Ruta za dodavanje novog korisnika (registracija)
 app.post('/api/users', async (req, res) => {
-  const { ime, prezime, telefon, email, sifra } = req.body;
+  const { ime, prezime, telefon, email, sifra, role } = req.body;
 
   try {
     // Ne heširamo šifru, već je čuvamo kao običan tekst
     const result = await client.query(
-      'INSERT INTO users(ime, prezime, telefon, email, sifra) VALUES($1, $2, $3, $4, $5) RETURNING *',
-      [ime, prezime, telefon, email, sifra] // Čuvanje šifre kao plain text
+      'INSERT INTO users(ime, prezime, telefon, email, sifra, role) VALUES($1, $2, $3, $4, $5, $6) RETURNING *',
+      [ime, prezime, telefon, email, sifra, role] // Čuvanje šifre kao plain text
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -80,6 +80,9 @@ app.post('/api/login', async (req, res) => {
 
     // Ako su podaci ispravni, vraćamo korisničke podatke (bez šifre)
     const { sifra: password, ...userWithoutPassword } = user; // Uklanjanje šifre iz odgovora
+    if(user.role==='admin'){
+      console.log('admin je00');
+    }
     res.json({ message: 'Uspešno ste prijavljeni', user: userWithoutPassword });
   } catch (err) {
     console.error('Error during login:', err.stack);
@@ -113,22 +116,6 @@ app.get('/api/rooms/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch room' });
   }
 });
-/*
-app.post('/api/reservations', async (req, res) => {
-  const { roomId, userId, reservationDate } = req.body;
-
-  try {
-    const result = await client.query(
-      'INSERT INTO reservations (room_id, user_id, reservation_date) VALUES ($1, $2, $3) RETURNING *',
-      [roomId, userId, reservationDate]
-    );
-    res.status(201).json({ message: 'Rezervacija uspešna', reservation: result.rows[0] });
-  } catch (err) {
-    console.error('Error creating reservation:', err.stack);
-    res.status(500).json({ error: 'Failed to create reservation' });
-  }
-});*/
-
 
 
 app.get('/api/test', (req, res) => {
@@ -200,69 +187,6 @@ app.get('/api/reservations/:roomType', async (req, res) => {
     res.status(500).json({ error: 'Greška pri dohvatanju rezervacija' });
   }
 });
-/*
-app.post('/api/reservations', async (req, res) => {
-  console.log('Primljeni podaci:', req.body); // Dodajte log za debagovanje
-  
-  const { room_id, start_date, end_date, adults, children, guest_info } = req.body;
-
-  // Validacija podataka
-  if (!room_id || !start_date || !end_date || !adults || !guest_info) {
-    console.error('Nedostaju obavezni podaci');
-    return res.status(400).json({ error: 'Nedostaju obavezni podaci' });
-  }
-
-  try {
-    const result = await pool.query(
-      `INSERT INTO reservations 
-       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING *`,
-      [
-        room_id,
-        start_date,
-        end_date,
-        adults,
-        children || 0,
-        calculateTotalPrice(room_id, start_date, end_date, adults, children), // Dodajte ovu funkciju
-        'pending',
-        guest_info.firstName + ' ' + guest_info.lastName,
-        guest_info.email,
-        guest_info.phone
-      ]
-    );
-
-    console.log('Uspešno sačuvana rezervacija:', result.rows[0]);
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error('Greška pri čuvanju rezervacije:', error);
-    res.status(500).json({ 
-      error: 'Došlo je do greške pri čuvanju rezervacije',
-      details: error.message 
-    });
-  }
-});*/
-/*
-// Pomocna funkcija za izračunavanje cene
-function calculateTotalPrice(startDate, endDate, adults, children) {
-  if (!startDate || !endDate) return 0;
-
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  // Računanje razlike u danima (uključuje i prvi dan)
-  const timeDiff = end.getTime() - start.getTime();
-  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
-
-  // Cena po osobi po danu (možeš ovo izvući iz baze ako treba)
-  const pricePerAdultPerDay = 50;
-  const pricePerChildPerDay = 25;
-
-  const totalPrice =
-    daysDiff * (adults * pricePerAdultPerDay + (children || 0) * pricePerChildPerDay);
-
-  return totalPrice;
-}*/
 
 
 app.post('/api/reservations', async (req, res) => {

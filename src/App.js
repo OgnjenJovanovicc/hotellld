@@ -50,6 +50,7 @@ function App() {
       telefon: formData.get("telefon"),
       email: formData.get("email"),
       sifra: formData.get("sifra"),
+      role: formData.get("role"),
     };
   
     try {
@@ -81,6 +82,7 @@ function App() {
         const newUser = {
           email: loginData.email,
           sifra: loginData.sifra,
+          role: response.data.user.role,
         };
   
         setUser(newUser); // Ažuriraj stanje korisnika
