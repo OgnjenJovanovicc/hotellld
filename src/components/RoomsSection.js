@@ -6,6 +6,10 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
   const handleScrollToRoomDetails = () => {  
       detailsRef.current.scrollIntoView({ behavior: 'smooth' });
   };
+  const handleAddRoomClick = () => {
+  // Ovo može da otvori modal ili preusmeri na formu
+  alert("Otvaranje forme za dodavanje sobe (implementiraj modal ili navigaciju)");
+};
 
   // Kada korisnik izabere sobu, pozivate ovu funkciju
   React.useEffect(() => {
@@ -17,7 +21,16 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
     <section id="rooms">
       <h2>Sobe</h2>
       <p>Pogledajte naše sobe...</p>
-
+       {user?.role === 'admin' && (
+<div className="admin-room-button-wrapper">
+      <button
+        className="add-room-button"
+        onClick={() => handleAddRoomClick(true)} // ili tvoj handler
+      >
+        ➕ Dodaj novu sobu
+      </button>
+    </div>
+  )}
       {/* Ako je selektovana soba, prikazujemo detalje */}
       {selectedRoom && (
         <div className="room-details" ref={detailsRef}>
