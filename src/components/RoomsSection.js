@@ -62,6 +62,7 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
           <RoomCard
             key={room.id}
             room={room}
+            user={user}
             onClick={() => handleDetails(room)} // Poziva funkciju za selektovanje sobe
           />
         ))}

@@ -9,11 +9,6 @@ const Header = ({ user, openModal, handleLogout }) => {
         <li><a href="#about">O nama</a></li>
         <li><a href="#rooms">Sobe</a></li>
         <li><a href="#contact">Kontakt <FaEnvelope className="icon" /></a></li>
-        {user?.role === 'admin' && (
-  <li>
- <span style={{ color: "gold", fontWeight: "bold" }}>Dobrodošao, admin!</span>
-  </li>
-)}
         {user ? (
           <li>
             <button className="login-button" onClick={handleLogout}>
