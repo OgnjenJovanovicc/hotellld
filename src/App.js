@@ -28,6 +28,8 @@ import background2 from './assest/slika2.webp';
 import background3 from './assest/slika3.webp';
 import background4 from './assest/hotel.webp';
 import ReservationPage from './ReservationPage';
+import { ToastContainer,toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -56,14 +58,14 @@ function App() {
     try {
       const response = await axios.post("http://localhost:5000/api/users", user);
       if (response.status === 201) {
-        alert("Uspešno registrovan korisnik!");
+        toast.success("Uspešno registrovan korisnik!");
         setIsLoginForm(true);
       } else {
-        alert("Došlo je do greške prilikom registracije.");
+        toast.error("Došlo je do greške prilikom registracije.");
       }
     } catch (error) {
       console.error("Greška prilikom registracije:", error);
-      alert("Došlo je do greške prilikom registracije.");
+      toast.error("Došlo je do greške prilikom registracije.");
     }
   };
 
@@ -88,18 +90,20 @@ function App() {
         setUser(newUser); // Ažuriraj stanje korisnika
         console.log("User state after login:", newUser);
         setIsModalOpen(false); // Zatvori modal
-        alert("Uspešno prijavljen korisnik!");
+        toast.success("Uspešno prijavljen korisnik!",{
+         // hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("Greška prilikom prijave:", error);
-      alert("Pogrešan email ili šifra.");
+      toast.warning("Pogrešan email ili šifra.");
     }
   };
   
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     setUser(null);
-    alert("Uspešno ste se odjavili.");
+    toast.info("Uspešno ste se odjavili.");
   };
 
   useEffect(() => {
@@ -215,7 +219,7 @@ function App() {
     if (user) {
       navigate('/reservation', { state: { room } });
     } else {
-      alert('Morate se prijaviti da biste rezervisali sobu.');
+      toast.warning('Morate se prijaviti da biste rezervisali sobu.');
     }
   };
 
@@ -223,7 +227,7 @@ function App() {
     if (user) {
       navigate('/reservation', { state: { room } });
     } else {
-      alert('Morate se prijaviti da biste rezervisali sobu.');
+       toast.warning('Morate se prijaviti da biste rezervisali sobu.');
     }
   };
 
@@ -239,6 +243,7 @@ return (
       element={
         <div className="App">
            <Header user={user} openModal={() => setIsModalOpen(true)} handleLogout={handleLogout} />
+            <ToastContainer/>
     <Slider 
       backgroundImages={backgroundImages} 
       currentIndex={currentIndex} 

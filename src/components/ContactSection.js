@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa';
 import './ContactSection.css';
+import { ToastContainer,toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -55,7 +57,7 @@ const ContactSection = () => {
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (error) {
       console.error('Greška pri slanju:', error);
-      alert(`Greška: ${error.message}`);
+      toast.error(`Greška: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -173,6 +175,7 @@ const ContactSection = () => {
           loading="lazy"
         ></iframe>
       </div>
+          <ToastContainer/>
     </section>
   );
 };

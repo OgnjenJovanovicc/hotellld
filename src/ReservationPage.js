@@ -8,6 +8,8 @@ import { FaPlus, FaMinus } from 'react-icons/fa';
 import styles from './ReservationPage.module.css';
 import Tooltip from '@mui/material/Tooltip';
 import  {LinearProgress, Box, Typography } from '@mui/material';
+import { ToastContainer,toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ReservationPage = () => {
   const location = useLocation();
@@ -123,12 +125,12 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
       throw new Error(data.error || 'Došlo je do greške pri čuvanju rezervacije');
     }
 
-    alert(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
+    toast.success(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
     setFormVisible(false);
     
   } catch (error) {
     console.error('Greška:', error);
-    alert(error.message || 'Došlo je do greške pri čuvanju rezervacije. Pokušajte ponovo.');
+    toast.error(error.message || 'Došlo je do greške pri čuvanju rezervacije. Pokušajte ponovo.');
   }
 };
   
@@ -144,18 +146,18 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
 
   const handleNextStep = () => {
     if (currentStep === 1 && (!startDate || !endDate || adults < 1)) {
-      alert('Molimo vas da popunite sve podatke u koraku 1!');
+      toast.warning('Molimo vas da popunite sve podatke u koraku 1!');
       return;
     }
     if (currentStep === 2 && (!userData.firstName || !userData.lastName || !userData.email || userData.email !== userData.confirmEmail)) {
-      alert('Molimo vas da popunite sve podatke u koraku 2 i proverite da li su e-mail adrese iste!');
+      toast.warning('Molimo vas da popunite sve podatke u koraku 2 i proverite da li su e-mail adrese iste!');
       return;
     }
     setCurrentStep(currentStep + 1);
   };
 
   const handleConfirmReservation = () => {
-    alert(
+    toast.info(
       `Rezervacija potvrđena!\nPočetak: ${startDate?.toLocaleDateString()}\nKraj: ${endDate?.toLocaleDateString()}\nOdrasli: ${adults}\nDeca: ${children}`
     );
     setFormVisible(false);
@@ -638,7 +640,7 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
     </div>
 
 )}
-
+   <ToastContainer/>
     </div>
   );
 };

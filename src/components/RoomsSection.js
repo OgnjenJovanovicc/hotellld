@@ -8,7 +8,7 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
   };
   const handleAddRoomClick = () => {
   // Ovo može da otvori modal ili preusmeri na formu
-  alert("Otvaranje forme za dodavanje sobe (implementiraj modal ili navigaciju)");
+  //alert("Otvaranje forme za dodavanje sobe (implementiraj modal ili navigaciju)");
 };
 
   // Kada korisnik izabere sobu, pozivate ovu funkciju

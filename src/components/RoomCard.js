@@ -1,27 +1,3 @@
-/*import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-
-
-const RoomCard = ({ room, onClick,user }) => (
-  <div className="room"onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-       onClick={() => onClick(room)}>
-    <img src={room.img} alt={room.title} />
-    <p>{room.title}</p>
-    <div className="overlay">
-      <button className="details-button">Detaljniji opis</button>
-      {user && user.role === 'admin' && hovered && (
-        <div className="admin-icons">
-          <FontAwesomeIcon icon={faEdit} className="icon edit-icon" />
-          <FontAwesomeIcon icon={faTrash} className="icon delete-icon" />
-        </div>
-      )}
-    </div>
-  </div>
-);
-
-export default RoomCard;*/
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import React, { useState } from 'react';
