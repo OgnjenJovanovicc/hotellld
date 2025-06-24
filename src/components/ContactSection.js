@@ -175,7 +175,9 @@ const ContactSection = () => {
           loading="lazy"
         ></iframe>
       </div>
-          <ToastContainer/>
+          <ToastContainer closeButton={false}
+          autoClose={1500}
+          />
     </section>
   );
 };

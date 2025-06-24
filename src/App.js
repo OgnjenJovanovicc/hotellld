@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect  } from "react";
+import React, { useState, useRef, useEffect, useCallback   } from "react";
 import axios from "axios";
 import { useNavigate,BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
@@ -10,6 +10,7 @@ import AboutSection from './components/AboutSection';
 import RoomsSection from './components/RoomsSection';
 import AuthModal from './components/AuthModal';
 import ContactSection from './components/ContactSection';
+import AdminRoom from "./AdminRoom";
 
 // Importujte slike za sobe
 import krevet1 from './assest/krevet1.webp';
@@ -29,7 +30,6 @@ import background3 from './assest/slika3.webp';
 import background4 from './assest/hotel.webp';
 import ReservationPage from './ReservationPage';
 import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -90,9 +90,7 @@ function App() {
         setUser(newUser); // Ažuriraj stanje korisnika
         console.log("User state after login:", newUser);
         setIsModalOpen(false); // Zatvori modal
-        toast.success("Uspešno prijavljen korisnik!",{
-         // hideProgressBar: true,
-        });
+        toast.success("Uspešno prijavljen korisnik!");
       }
     } catch (error) {
       console.error("Greška prilikom prijave:", error);
@@ -114,7 +112,8 @@ function App() {
       );
     }, 5000); // Menjanje slajdova svakih 5 sekundi
 
-    return () => clearInterval(interval); // Čišćenje intervala
+    return () => {clearInterval(interval);
+    }; 
   }, [backgroundImages.length]);
 
   const handleNext = () => {
@@ -131,12 +130,46 @@ function App() {
     setCurrentIndex(index);
   };
 
+  const [dynamicRooms, setDynamicRooms] = useState([]);
+/*useEffect(() => {
+  axios.get("http://localhost:5000/api/rooms") 
+    .then(response => {
+      // Spoji hardkodirane i iz baze
+      setAllRooms(prev => [...prev, ...response.data]);
+    })
+    .catch(error => console.error("Greška:", error));
+}, []);*/
+
+useEffect(() => {
+  axios.get("http://localhost:5000/api/rooms") 
+    .then(response => {
+      const formattedRooms = response.data.map(dbRoom => ({
+        ...dbRoom,
+        // Osigurajte da sve sobe imaju ista polja
+        id: dbRoom.id || dbRoom.room_id || Math.random(),
+        img: dbRoom.img || dbRoom.image_url,  // Fallback slika
+        title: dbRoom.title || `Soba ${dbRoom.room_number}`,
+        price: dbRoom.price || dbRoom.price_per_night,
+        longDescription: dbRoom.long_description || dbRoom.long_description || "",
+        // Ostala polja po potrebi
+      }));
+      setAllRooms([...rooms, ...formattedRooms]);
+    })
+    .catch(error => {
+      console.error("Greška pri učitavanju soba:", error);
+      // Možete nastaviti samo sa hardkodiranim sobama u slučaju greške
+    });
+}, []);
+
+
   const rooms = [
     {
       id: 1,
       img: krevet1,
+      room_number: 100,
       title: "Soba 1",
       type:"Luksuz",
+      capacity:5,
       description: "-Luksuzna soba sa jednim velikim krevetom i prelepim pogledom.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
       longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
       price: 45,
@@ -159,52 +192,199 @@ function App() {
     {
       id: 2,
       img: krevet23,
+      room_number: 120,
       title: "Soba 2",
-      description: "Prostrana soba sa dva kreveta, idealna za porodice.",
+      type:"Clasic",
+      capacity:4,
+      description: "-Klasicna soba sa jednim dva kreveta i prelepim pogledom.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 35,
+       weekendPrice: 40,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.5,
+      count: 120,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "🛏️ King size krevet",
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen"
+    ]
     },
     {
       id: 3,
       img: economic,
+      room_number: 130,
       title: "Soba 3",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      type:"Jednokrevetna",
+      capacity:5,
+      description: "-Luksuzna soba sa jednim krevetom i prelepim pogledom.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 25,
+       weekendPrice: 30,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.6,
+      count: 120,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen"
+    ]
     },
     {
       id: 4,
       img: viewroom,
+      room_number: 140,
       title: "Soba 4",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      type:"Trokrevetna",
+      capacity:5,
+      description: "-Luksuzna soba sa tri velika kreveta i prelepim pogledom.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 45,
+       weekendPrice: 50,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.7,
+      count: 120,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen"
+    ]
     },
     {
       id: 5,
       img: pethouse,
+      room_number: 150,
       title: "Soba 5",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      type:"penthous",
+      capacity:8,
+      description: "-PENTHOUSE.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 100,
+       weekendPrice: 120,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 50,
+      count: 26,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "🛏️ King size krevet",
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen",
+      "💪 Teretana"
+    ]
     },
     {
       id: 6,
       img: petfriendly,
+       room_number: 160,
       title: "Soba 6",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      type:"Dvokrevetna",
+      capacity:4,
+      description: "-Dvokrevetan soba.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 35,
+       weekendPrice: 40,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.5,
+      count: 86,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "🛏️ King size krevet",
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen",
+    ]
     },
     {
       id: 7,
       img: rooms1,
+       room_number: 170,
       title: "Soba 7",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      type:"Pet friendly",
+      capacity:8,
+      description: "-Pet friendly sobica.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 50,
+       weekendPrice: 60,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.4,
+      count: 77,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "🛏️ King size krevet",
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen",
+      "💪 Teretana"
+    ]
     },
     {
       id: 8,
       img: sobax,
+       room_number: 180,
       title: "Soba 8",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      type:"President",
+      capacity:8,
+      description: "-PRESIDENT.\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:"Prostrana soba sa dva kreveta, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 200,
+       weekendPrice: 220,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.9,
+      count: 5,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "🛏️ King size krevet",
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen",
+      "💪 Teretana"
+    ]
     },
     {
       id: 9,
       img: family,
-      title: "Soba 9",
-      description: "Ekonomična soba za kratke boravke, udobna i funkcionalna.",
+      room_number: 190,
+      title: "Student",
+      type:"penthous",
+      capacity:8,
+      description: "Studentska soba\n-Ovo je proba za koju mi je potreban neki tekst bez veze,razumes bto,tuki moj razumes a razymessssss, \n-ako dodje do sranja on je moj",
+      longDescription:" DA SE PRESPAVA SAMO, idealna za porodice koje žele komfor i privatnost. Opremljena je klima uređajem, radnim stolom, velikim garderoberom i pametnim TV-om. Pogodna za duži boravak i poseduje prelep pogled na vrt.\n aaa aaaaaaa aaaaaaaaaa aaaaaa aaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaa aaaaaa aa\naaaaa aaaaaaaaaaaaa aaaaa aaa aaaa aaaaa aaaaaa aaa aaaaaaa aaaa aaaa aa aaa aaaaaa\n aaaa aaaaaa aaaa aaaaa aaaaaaaa aaaaaaaa aaaaaa aaaaaa aaaaaaa aaaa aaaaa aaa aaaaaa",
+      price: 20,
+       weekendPrice: 25,
+      discount: "10% za 7+ noći",
+      reviews: {
+       rating: 4.6,
+      count: 98,
+      comment: "Savršena lokacija i veoma čisto!",
+    },
+    amenities: [
+      "📶 Besplatan Wi-Fi",
+      "🚿 Privatno kupatilo",
+      "🍳 Doručak uključen",
+      "💪 Teretana"
+    ]
     },
   ];
+
+const [allRooms, setAllRooms] = useState(rooms);
 
   const handleDetails = (room) => {
     setSelectedRoom(room);
@@ -243,7 +423,10 @@ return (
       element={
         <div className="App">
            <Header user={user} openModal={() => setIsModalOpen(true)} handleLogout={handleLogout} />
-            <ToastContainer/>
+            <ToastContainer
+            closeButton={false}
+            autoClose={1500}
+            />
     <Slider 
       backgroundImages={backgroundImages} 
       currentIndex={currentIndex} 
@@ -257,7 +440,7 @@ return (
       ]
       } />
             <RoomsSection className="rooms-section fade-in"
-              rooms={rooms}
+              rooms={allRooms}
               handleDetails={handleDetails}
               selectedRoom={selectedRoom}
               detailsRef={detailsRef}

@@ -260,6 +260,78 @@ app.post('/api/reservations', async (req, res) => {
 }
 });
 
+app.post("/api/rooms", async (req, res) => {
+   console.log("Primljeni podaci:", req.body); // Proverite u server konzoli
+  const {
+    room_number,
+    room_type,
+    capacity,
+    description,
+    long_description,
+    price_per_night,
+    amenities,
+    image_url,
+  } = req.body;
+
+  // Provera svih polja
+  if (
+    !room_number ||
+    !room_type ||
+    !capacity ||
+    !description ||
+    !long_description ||
+    !price_per_night ||
+    !image_url
+  ) {
+    return res.status(400).json({ error: "Nedostaju neophodni podaci." });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO rooms (room_number, room_type, capacity, description, long_description, price_per_night, amenities, image_url) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [
+        room_number,
+        room_type,
+        capacity,
+        description,
+        long_description,
+        price_per_night,
+        JSON.stringify(amenities),
+       image_url ,
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška prilikom dodavanja sobe" });
+  }
+});
+/*
+app.get("/api/rooms", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM rooms");
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: "Greška pri učitavanju soba" });
+  }
+});*/
+
+app.get("/api/rooms", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM rooms");
+    const roomsWithConsistentStructure = result.rows.map(room => ({
+      ...room,
+      img: `/assets/rooms/${room.URL_img}`, // Dodajte punu putanju
+      long_description: room.long_description || [],
+      title: room.title || `Soba ${room.room_number}`,
+      amenities: room.amenities || []
+    }));
+    res.status(200).json(roomsWithConsistentStructure);
+  } catch (error) {
+    res.status(500).json({ error: "Greška pri učitavanju soba" });
+  }
+});
 
 // ✅ Funkcija za izračunavanje cene
 function calculateTotalPrice(start, end, adults, children = 0) {

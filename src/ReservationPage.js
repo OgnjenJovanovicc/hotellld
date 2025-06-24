@@ -640,7 +640,9 @@ console.log('Dostupni propertyji:', Object.keys(room || {}));
     </div>
 
 )}
-   <ToastContainer/>
+   <ToastContainer 
+   closeButton={false}
+   autoClose={1500}/>
     </div>
   );
 };
