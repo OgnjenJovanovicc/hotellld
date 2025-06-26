@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange }) => {
+const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode, onEditRoomSubmit }) => {
   // Ako dobijamo formValues i onFormChange iz propsa, koristimo ih, inače koristimo lokalni state (radi kompatibilnosti)
   const isControlled = !!formValues && !!onFormChange;
   const [localState, setLocalState] = useState({
@@ -41,6 +41,10 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isEditMode && typeof onEditRoomSubmit === 'function') {
+      onEditRoomSubmit();
+      return;
+    }
     const roomData = {
       room_number: getValue("roomNumber") ? parseInt(getValue("roomNumber"), 10) : undefined,
       room_type: getValue("roomType"),
@@ -83,7 +87,7 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange }) => {
         fontSize: '2rem',
         fontWeight: 600,
         color: '#222',
-      }}>Dodaj sobu</h2>
+      }}>{isEditMode ? 'Izmeni sobu' : 'Dodaj sobu'}</h2>
       <form style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }} onSubmit={handleSubmit}>
         <input
           style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
@@ -163,7 +167,7 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange }) => {
             transition: 'background 0.2s',
           }}
         >
-          Dodaj sobu
+          {isEditMode ? 'Izmeni sobu' : 'Dodaj sobu'}
         </button>
       </form>
     </div>

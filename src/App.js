@@ -388,6 +388,8 @@ useEffect(() => {
 
   // Dodato za modal i formu za dodavanje sobe
   const [showAddRoomForm, setShowAddRoomForm] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [roomToEdit, setRoomToEdit] = useState(null);
   const initialFormState = {
     roomNumber: '',
     roomType: '',
@@ -399,6 +401,53 @@ useEffect(() => {
     image_url: '',
   };
   const [adminRoomForm, setAdminRoomForm] = useState(initialFormState);
+
+  const handleEditRoom = (room) => {
+    setIsEditMode(true);
+    setRoomToEdit(room);
+    setShowAddRoomForm(true);
+    setAdminRoomForm({
+      roomNumber: room.room_number || room.roomNumber || '',
+      roomType: room.room_type || room.roomType || '',
+      capacity: room.capacity || '',
+      description: room.description || '',
+      longDescription: room.longDescription || room.long_description || '',
+      price_per_night: room.price_per_night || room.price || '',
+      amenities: Array.isArray(room.amenities) ? room.amenities.join(', ') : (room.amenities || ''),
+      image_url: room.img || room.image_url || '',
+    });
+  };
+
+  const handleEditRoomSubmit = async () => {
+    if (!roomToEdit) return;
+    try {
+      const updatedRoom = {
+        room_number: adminRoomForm.roomNumber,
+        room_type: adminRoomForm.roomType,
+        capacity: adminRoomForm.capacity,
+        description: adminRoomForm.description,
+        long_description: adminRoomForm.longDescription,
+        price_per_night: adminRoomForm.price_per_night,
+        amenities: adminRoomForm.amenities,
+        image_url: adminRoomForm.image_url,
+      };
+      const id = roomToEdit.room_id || roomToEdit.id;
+      const res = await axios.put(`http://localhost:5000/api/rooms/${id}`, updatedRoom);
+      if (res.status === 200) {
+        setAllRooms(prev => prev.map(r => (r.room_id === id || r.id === id) ? { ...r, ...updatedRoom, id: r.id, room_id: r.room_id } : r));
+        toast.success('Soba uspešno izmenjena!');
+        setShowAddRoomForm(false);
+        setIsEditMode(false);
+        setRoomToEdit(null);
+        setAdminRoomForm(initialFormState);
+      } else {
+        toast.error('Greška pri izmeni sobe.');
+      }
+    } catch (err) {
+      toast.error('Greška pri izmeni sobe.');
+    }
+  };
+
   const handleAdminRoomChange = useCallback((field, value) => {
     setAdminRoomForm(prev => ({ ...prev, [field]: value }));
   }, []);
@@ -492,7 +541,8 @@ return (
                   }
                 ]);
               }}
-              onDeleteRoom={handleDeleteRoom} // Dodato prosleđivanje funkcije za brisanje
+              onDeleteRoom={handleDeleteRoom}
+              onEditRoom={handleEditRoom}
             />
             <ContactSection className="fade-in" />
           </main>
@@ -530,9 +580,12 @@ return (
                         id: newRoom.id || newRoom.room_id || `form_${newRoom.room_number}_${Date.now()}_${Math.random()}`
                       }
                     ]);
-                    handleAdminRoomClose();
+                    setShowAddRoomForm(false);
+                    setAdminRoomForm(initialFormState);
                   }}
                   onClose={handleAdminRoomClose}
+                  isEditMode={isEditMode}
+                  onEditRoomSubmit={handleEditRoomSubmit}
                 />
               </div>
             </div>

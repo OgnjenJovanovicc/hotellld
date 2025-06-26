@@ -92,11 +92,18 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/rooms', async (req, res) => {
   try {
-    const result = await client.query('SELECT * FROM rooms');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching rooms:', err.stack);
-    res.status(500).json({ error: 'Failed to fetch rooms' });
+    const result = await pool.query('SELECT * FROM rooms');
+    const roomsWithConsistentStructure = result.rows.map(room => ({
+      ...room,
+      img: room.image_url, // koristi direktno image_url iz baze
+      long_description: room.long_description || [],
+      title: room.title || `Soba ${room.room_number}`,
+      amenities: room.amenities || [],
+      room_type: room.room_type ? String(room.room_type) : "" // Osiguraj da je room_type string
+    }));
+    res.status(200).json(roomsWithConsistentStructure);
+  } catch (error) {
+    res.status(500).json({ error: "Greška pri učitavanju soba" });
   }
 });
 
@@ -333,7 +340,8 @@ app.get("/api/rooms", async (req, res) => {
       img: room.image_url, // koristi direktno image_url iz baze
       long_description: room.long_description || [],
       title: room.title || `Soba ${room.room_number}`,
-      amenities: room.amenities || []
+      amenities: room.amenities || [],
+      room_type: room.room_type ? String(room.room_type) : "" // Osiguraj da je room_type string
     }));
     res.status(200).json(roomsWithConsistentStructure);
   } catch (error) {
@@ -375,6 +383,67 @@ app.delete("/api/rooms/:room_id", async (req, res) => {
   } catch (error) {
     console.error("Error pri brisanju:", error);
     res.status(500).json({ error: "Greška pri brisanju sobe" });
+  }
+});
+
+app.put("/api/rooms/:room_id", async (req, res) => {
+  try {
+    let { room_id } = req.params;
+    if (!room_id) {
+      return res.status(400).json({ error: "Nedostaje ID sobe" });
+    }
+    room_id = Number(room_id);
+    if (isNaN(room_id)) {
+      return res.status(400).json({ error: "ID sobe nije validan broj" });
+    }
+    const {
+      room_number,
+      room_type,
+      capacity,
+      description,
+      long_description,
+      price_per_night,
+      amenities,
+      image_url,
+    } = req.body;
+
+    // Parsiranje amenities uvek u niz
+    let amenitiesArray = [];
+    if (Array.isArray(amenities)) {
+      amenitiesArray = amenities;
+    } else if (typeof amenities === 'string') {
+      amenitiesArray = amenities.split(',').map(a => a.trim()).filter(Boolean);
+    }
+
+    const updateQuery = `UPDATE rooms SET
+      room_number = $1,
+      room_type = $2,
+      capacity = $3,
+      description = $4,
+      long_description = $5,
+      price_per_night = $6,
+      amenities = $7,
+      image_url = $8
+      WHERE room_id = $9 RETURNING *`;
+    const values = [
+      parseInt(room_number, 10),
+      room_type,
+      parseInt(capacity, 10),
+      description,
+      long_description,
+      parseFloat(price_per_night),
+      JSON.stringify(amenitiesArray),
+      image_url,
+      room_id
+    ];
+    const result = await pool.query(updateQuery, values);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Soba nije pronađena" });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Greška pri izmeni sobe:", error.message, error.stack);
+    res.status(500).json({ error: "Greška pri izmeni sobe", details: error.message, stack: error.stack });
   }
 });
 

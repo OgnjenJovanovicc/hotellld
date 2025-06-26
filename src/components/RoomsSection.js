@@ -1,7 +1,7 @@
 import React from 'react';
 import RoomCard from './RoomCard';
 
-const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, onReserve, onDeleteRoom }) => {
+const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, onReserve, onDeleteRoom, onEditRoom }) => {
   const handleScrollToRoomDetails = () => {  
       detailsRef.current.scrollIntoView({ behavior: 'smooth' });
   };
@@ -50,7 +50,8 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
             room={room}
             user={user}
             onClick={() => handleDetails(room)}
-            onDelete={onDeleteRoom} // Dodato prosleđivanje funkcije za brisanje
+            onDelete={onDeleteRoom}
+            onEdit={onEditRoom}
           />
         ))}
       </div>
