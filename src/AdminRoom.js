@@ -1,231 +1,173 @@
-/*import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const AdminRoom = ({ onRoomAdded }) => {
-  const [roomData, setRoomData] = useState({
-    room_number: '',
-    room_type: '',
-    capacity: '',
-    description: '',
-    long_description: '',
-    price_per_night: '',
-    amenities: '', // "WiFi, Klima, Fen..."
-    image_url: ''
+const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange }) => {
+  // Ako dobijamo formValues i onFormChange iz propsa, koristimo ih, inače koristimo lokalni state (radi kompatibilnosti)
+  const isControlled = !!formValues && !!onFormChange;
+  const [localState, setLocalState] = useState({
+    roomNumber: "",
+    roomType: "",
+    capacity: "",
+    description: "",
+    longDescription: "",
+    price_per_night: "",
+    amenities: "",
+    image_url: "",
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setRoomData({ ...roomData, [e.target.name]: e.target.value });
+  // Sync local state sa propsima ako se koristi controlled
+  useEffect(() => {
+    if (isControlled) return;
+    setLocalState({
+      roomNumber: "",
+      roomType: "",
+      capacity: "",
+      description: "",
+      longDescription: "",
+      price_per_night: "",
+      amenities: "",
+      image_url: "",
+    });
+  }, [onClose]);
+
+  const getValue = (field) => isControlled ? formValues[field] : localState[field];
+  const setValue = (field, value) => {
+    if (isControlled) {
+      onFormChange(field, value);
+    } else {
+      setLocalState(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await axios.post('http://localhost:5000/api/rooms', roomData);
-      if (response.data) {
-        alert('Soba uspešno dodata!');
-        if (onRoomAdded) onRoomAdded(response.data);
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Greška pri dodavanju sobe');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded max-w-xl">
-      <h2 className="text-xl font-bold">Dodaj novu sobu</h2>
-      <div>
-        <label>Broj sobe</label>
-        <input 
-          type="text"
-          name="room_number"
-          value={roomData.room_number}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label>Tip sobe</label>
-        <input 
-          type="text"
-          name="room_type"
-          value={roomData.room_type}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label>Kapacitet</label>
-        <input 
-          type="number"
-          name="capacity"
-          value={roomData.capacity}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label>Opis</label>
-        <textarea 
-          name="description"
-          value={roomData.description}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label>Duži opis</label>
-        <textarea 
-          name="long_description"
-          value={roomData.long_description}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label>Cena po noći</label>
-        <input 
-          type="number"
-          name="price_per_night"
-          value={roomData.price_per_night}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label>Dodaci (npr. WiFi, Klima, Fen)</label>
-        <input 
-          type="text"
-          name="amenities"
-          value={roomData.amenities}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label>URL slike</label>
-        <input 
-          type="text"
-          name="image_url"
-          value={roomData.image_url}
-          onChange={handleChange}
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-blue-500 text-white rounded p-2"
-      >
-        {loading ? 'Dodavanje...' : 'Dodaj sobu'}
-      </button>
-    </form>
-  );
-};
-
-export default AdminRoom;
-*/
-import React, { useState } from "react";
-import axios from "axios";
-
-const AdminRoom = ({ onRoomAdded }) => {
-  const [roomNumber, setRoomNumber] = useState("");
-  const [roomType, setRoomType] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [description, setDescription] = useState("");
-  const [longDescription, setLongDescription] = useState("");
-  const [price_per_night, setPrice] = useState("");
-  const [amenities, setAmenities] = useState("");
-  const [image_url, setUrlImg] = useState("");
-
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  const roomData = {
-    room_number: parseInt(roomNumber),
-    room_type: roomType,
-    capacity: parseInt(capacity),
-    description,
-    long_description: longDescription,
-    price_per_night: parseFloat(price_per_night),
-    amenities: amenities.trim() ? amenities.split(",").map(a => a.trim()) : [],
-    image_url: image_url,
-  };
-  console.log("Podaci koji se šalju:", roomData); // Proverite u konzoli pregledača
-  // ...ostatak koda
-
+    const roomData = {
+      room_number: getValue("roomNumber") ? parseInt(getValue("roomNumber"), 10) : undefined,
+      room_type: getValue("roomType"),
+      capacity: getValue("capacity") ? parseInt(getValue("capacity"), 10) : undefined,
+      description: getValue("description"),
+      long_description: getValue("longDescription"),
+      price_per_night: getValue("price_per_night") ? parseFloat(getValue("price_per_night")) : undefined,
+      amenities: getValue("amenities").trim() ? getValue("amenities").split(",").map(a => a.trim()) : [],
+      image_url: getValue("image_url"),
+    };
     try {
       const response = await axios.post("http://localhost:5000/api/rooms", roomData);
       if (response.status === 201) {
         alert("Soba uspešno dodata!");
         if (onRoomAdded) onRoomAdded(response.data);
+        if (onClose) onClose();
       }
     } catch (err) {
       console.error(err);
       alert("Greška prilikom dodavanja sobe");
     }
   };
-  
+
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="number"
-        value={roomNumber}
-        onChange={(e) => setRoomNumber(e.target.value)}
-        placeholder="Broj sobe"
-        required
-      />
-      <input
-        type="text"
-        value={roomType}
-        onChange={(e) => setRoomType(e.target.value)}
-        placeholder="Tip sobe"
-        required
-      />
-      <input
-        type="number"
-        value={capacity}
-        onChange={(e) => setCapacity(e.target.value)}
-        placeholder="Kapacitet"
-        required
-      />
-      <input
-        type="text"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Opis"
-        required
-      />
-      <input
-        type="number"
-        value={price_per_night}
-        onChange={(e) => setPrice(e.target.value)}
-        placeholder="Cena po noći"
-        required
-      />
-            <input
-        type="text"
-        value={longDescription}
-        onChange={(e) => setLongDescription(e.target.value)}
-        placeholder="Duži opis"
-        required
-      />
-      <input
-        type="text"
-        value={amenities}
-        onChange={(e) => setAmenities(e.target.value)}
-        placeholder="Sadržaji (odvojeni zarezom)"
-      />
-      <input
-        type="text"
-        value={image_url}
-        onChange={(e) => setUrlImg(e.target.value)}
-        placeholder="URL slike sobe"
-        required
-      />
-      <button type="submit">Dodaj sobu</button>
-    </form>
+    <div style={{
+      background: '#fff',
+      borderRadius: '16px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+      maxWidth: 400,
+      width: '100%',
+      margin: '0 auto',
+      padding: '32px 32px 24px 32px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    }}>
+      <h2 style={{
+        textAlign: 'center',
+        marginBottom: 24,
+        fontSize: '2rem',
+        fontWeight: 600,
+        color: '#222',
+      }}>Dodaj sobu</h2>
+      <form style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }} onSubmit={handleSubmit}>
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("roomNumber")}
+          onChange={(e) => setValue("roomNumber", e.target.value)}
+          placeholder="Broj sobe"
+          required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("roomType")}
+          onChange={(e) => setValue("roomType", e.target.value)}
+          placeholder="Tip sobe"
+          required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("capacity")}
+          onChange={(e) => setValue("capacity", e.target.value)}
+          placeholder="Kapacitet"
+          required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("description")}
+          onChange={(e) => setValue("description", e.target.value)}
+          placeholder="Opis"
+          required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("price_per_night")}
+          onChange={(e) => setValue("price_per_night", e.target.value)}
+          placeholder="Cena po noći"
+          required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("longDescription")}
+          onChange={(e) => setValue("longDescription", e.target.value)}
+          placeholder="Duži opis"
+          required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("amenities")}
+          onChange={(e) => setValue("amenities", e.target.value)}
+          placeholder="Sadržaji (odvojeni zarezom)"
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("image_url")}
+          onChange={(e) => setValue("image_url", e.target.value)}
+          placeholder="URL slike sobe"
+          required
+        />
+        <button
+          type="submit"
+          style={{
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: 12,
+            fontSize: '1.1rem',
+            fontWeight: 500,
+            marginTop: 10,
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+          }}
+        >
+          Dodaj sobu
+        </button>
+      </form>
+    </div>
   );
 };
 
-export default AdminRoom;
+export default React.memo(AdminRoom);

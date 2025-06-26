@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import React, { useState } from 'react';
 
-const RoomCard = ({ room, onClick, user }) => {
+const RoomCard = ({ room, onClick, user, onDelete }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -31,7 +31,18 @@ const RoomCard = ({ room, onClick, user }) => {
           }}
         >
           <FontAwesomeIcon icon={faEdit} className="icon edit-icon" />
-          <FontAwesomeIcon icon={faTrash} className="icon delete-icon" />
+          <FontAwesomeIcon
+            icon={faTrash}
+            className="icon delete-icon"
+            onClick={e => {
+              e.stopPropagation();
+              if (typeof onDelete === 'function') {
+                onDelete(room.room_id);
+              }
+            }}
+            style={{ cursor: 'pointer', marginLeft: '10px' }}
+            title="Obriši sobu"
+          />
         </div>
       )}
     </div>
