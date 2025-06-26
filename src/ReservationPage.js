@@ -24,7 +24,7 @@ const ReservationPage = () => {
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [adults, setAdults] = useState(1);
-  const[total_price,setTotalPrice]=useState(0);
+  const [total_price,setTotalPrice]=useState(0);
   const [bookedDates, setBookedDates] = useState([]);
   const [children, setChildren] = useState(0);
   const [paymentOption, setPaymentOption] = useState('naknadno');
@@ -44,58 +44,51 @@ const ReservationPage = () => {
 
 const shouldDisableDate = (date) => {
   if (!bookedDates || !bookedDates.length) return false;
-  
   // Konvertujemo Date objekat u string u formatu YYYY-MM-DD
   const dateStr = date.toISOString().split('T')[0];
-  
-  // Proveravamo da li se nalazi u nizu stringova
-  return bookedDates.includes(dateStr);
+  const isDisabled = bookedDates.includes(dateStr);
+  // Debug logovi
+  if (isDisabled) {
+    console.log('DISABLED:', dateStr, 'je u bookedDates', bookedDates);
+  }
+  return isDisabled;
 };
   
 useEffect(() => {
   console.log('Room objekat:', room);
-console.log('Dostupni propertyji:', Object.keys(room || {}));
-  console.log('useEffect se izvršava', room?.type);
-  if (!roomType) {
+  console.log('Dostupni propertyji:', Object.keys(room || {}));
+  // Prikazujemo vrednost room_type i type
+  console.log('room.room_type:', room?.room_type, 'room.type:', room?.type);
+  const typeForFetch = room?.room_type || room?.type;
+  if (!typeForFetch) {
     console.error('Nedostaje tip sobe');
     return;
   }
   const fetchBookedDates = async () => {
-    console.log('Početak slanja zahteva');
-    if (!room?.type) return; // Koristimo room.type umesto room.id
-
+    console.log('Početak slanja zahteva za type:', typeForFetch);
     try {
-      const response = await fetch(`http://localhost:5000/api/reservations/${room.type}`,{
-    //  const response = await fetch(`/api/reservations/${room.type}`, {
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-  }
-});
-   //const response = await fetch(`http://localhost:3001/api/reservations/${room.type}`);
-      //const response = await fetch(`/api/reservations/${room.type}`);
+      const response = await fetch(`http://localhost:5000/api/reservations/${typeForFetch}`,{
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
       console.log('Odgovor primljen', response);
-     
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
       const data = await response.json();
-      console.log("Dobijeni podaci:", data);
+      console.log("Dobijeni podaci (bookedDates):", data);
       if (!Array.isArray(data)) {
         throw new Error('Očekivan je niz datuma');
       }
       setBookedDates(data); // Backend već vraća niz stringova
     } catch (error) {
       console.error('Greška prilikom učitavanja zauzetih datuma:', error);
-      const errorResponse = await fetch(`/api/reservations/${room.type}`);
-      const text = await errorResponse.text();
-      console.error("Puni odgovor servera:", text);
     }
   };
-
-    fetchBookedDates();
-  }, [room.type]);
+  fetchBookedDates();
+}, [room?.room_type, room?.type]);
   const handleConfirmReservation1 = async () => {
   try {
     // Provera da li su svi potrebni podaci prisutni
