@@ -95,11 +95,14 @@ app.get('/api/rooms', async (req, res) => {
     const result = await pool.query('SELECT * FROM rooms');
     const roomsWithConsistentStructure = result.rows.map(room => ({
       ...room,
-      img: room.image_url, // koristi direktno image_url iz baze
+      img: room.image_url,
       long_description: room.long_description || [],
       title: room.title || `Soba ${room.room_number}`,
       amenities: room.amenities || [],
-      room_type: room.room_type ? String(room.room_type) : "" // Osiguraj da je room_type string
+      room_type: room.room_type ? String(room.room_type) : "",
+      weekendPrice: room.weekend_price || "",
+      discount: room.discount || "",
+      reviews: room.reviews ? (typeof room.reviews === 'string' ? JSON.parse(room.reviews) : room.reviews) : { rating: '', count: '', comment: '' }
     }));
     res.status(200).json(roomsWithConsistentStructure);
   } catch (error) {
@@ -278,6 +281,9 @@ app.post("/api/rooms", async (req, res) => {
     price_per_night,
     amenities,
     image_url,
+    weekendPrice,
+    discount,
+    reviews
   } = req.body;
 
   // Parsiranje amenities uvek u niz
@@ -303,8 +309,8 @@ app.post("/api/rooms", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO rooms (room_number, room_type, capacity, description, long_description, price_per_night, amenities, image_url) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      `INSERT INTO rooms (room_number, room_type, capacity, description, long_description, price_per_night, amenities, image_url, weekend_price, discount, reviews) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
       [
         parseInt(room_number, 10),
         room_type,
@@ -314,6 +320,9 @@ app.post("/api/rooms", async (req, res) => {
         parseFloat(price_per_night),
         JSON.stringify(amenitiesArray), // šaljemo kao JSON string
         image_url ,
+        weekendPrice || null,
+        discount || null,
+        reviews ? JSON.stringify(reviews) : null
       ]
     );
     res.status(201).json(result.rows[0]);
@@ -337,11 +346,14 @@ app.get("/api/rooms", async (req, res) => {
     const result = await pool.query("SELECT * FROM rooms");
     const roomsWithConsistentStructure = result.rows.map(room => ({
       ...room,
-      img: room.image_url, // koristi direktno image_url iz baze
+      img: room.image_url,
       long_description: room.long_description || [],
       title: room.title || `Soba ${room.room_number}`,
       amenities: room.amenities || [],
-      room_type: room.room_type ? String(room.room_type) : "" // Osiguraj da je room_type string
+      room_type: room.room_type ? String(room.room_type) : "",
+      weekendPrice: room.weekend_price || "",
+      discount: room.discount || "",
+      reviews: room.reviews ? (typeof room.reviews === 'string' ? JSON.parse(room.reviews) : room.reviews) : { rating: '', count: '', comment: '' }
     }));
     res.status(200).json(roomsWithConsistentStructure);
   } catch (error) {
@@ -405,6 +417,9 @@ app.put("/api/rooms/:room_id", async (req, res) => {
       price_per_night,
       amenities,
       image_url,
+      weekendPrice,
+      discount,
+      reviews
     } = req.body;
 
     // Parsiranje amenities uvek u niz
@@ -423,8 +438,11 @@ app.put("/api/rooms/:room_id", async (req, res) => {
       long_description = $5,
       price_per_night = $6,
       amenities = $7,
-      image_url = $8
-      WHERE room_id = $9 RETURNING *`;
+      image_url = $8,
+      weekend_price = $9,
+      discount = $10,
+      reviews = $11
+      WHERE room_id = $12 RETURNING *`;
     const values = [
       parseInt(room_number, 10),
       room_type,
@@ -434,6 +452,9 @@ app.put("/api/rooms/:room_id", async (req, res) => {
       parseFloat(price_per_night),
       JSON.stringify(amenitiesArray),
       image_url,
+      weekendPrice || null,
+      discount || null,
+      reviews ? JSON.stringify(reviews) : null,
       room_id
     ];
     const result = await pool.query(updateQuery, values);

@@ -34,7 +34,7 @@ import 'aos/dist/aos.css';
 
 // Pomeri rooms van funkcije App
 const rooms = [
-  {
+  /*{
     id: 1,
     img: krevet1,
     room_number: 100,
@@ -58,8 +58,8 @@ const rooms = [
       "🍳 Doručak uključen"
     ]
   },
-
-
+*/
+/*
   {
     id: 2,
     img: krevet23,
@@ -83,7 +83,7 @@ const rooms = [
       "🚿 Privatno kupatilo",
       "🍳 Doručak uključen"
     ]
-    },
+    },*//*
     {
       id: 10,
       img: economic,
@@ -106,7 +106,7 @@ const rooms = [
     "🚿 Privatno kupatilo",
     "🍳 Doručak uključen"
   ]
-  },
+  },*//*
   {
     id: 4,
     img: viewroom,
@@ -129,7 +129,7 @@ const rooms = [
     "🚿 Privatno kupatilo",
     "🍳 Doručak uključen"
   ]
-  },
+  },*//*
   {
     id: 5,
     img: pethouse,
@@ -154,7 +154,7 @@ const rooms = [
     "🍳 Doručak uključen",
     "💪 Teretana"
   ]
-  },
+  },*//*
   {
     id: 6,
     img: petfriendly,
@@ -178,7 +178,7 @@ const rooms = [
     "🚿 Privatno kupatilo",
     "🍳 Doručak uključen",
   ]
-  },
+  },*//*
   {
     id: 7,
     img: rooms1,
@@ -203,7 +203,8 @@ const rooms = [
     "🍳 Doručak uključen",
     "💪 Teretana"
   ]
-  },
+  },*/
+/*
   {
     id: 8,
     img: sobax,
@@ -228,7 +229,7 @@ const rooms = [
     "🍳 Doručak uključen",
     "💪 Teretana"
   ]
-  },
+  },*//*
   {
     id: 9,
     img: family,
@@ -252,7 +253,7 @@ const rooms = [
     "🍳 Doručak uključen",
     "💪 Teretana"
   ]
-  },
+  },*/
 ];
 
 function App() {
@@ -399,6 +400,11 @@ useEffect(() => {
     price_per_night: '',
     amenities: '',
     image_url: '',
+    weekendPrice: '',
+    discount: '',
+    reviews_rating: '',
+    reviews_count: '',
+    reviews_comment: ''
   };
   const [adminRoomForm, setAdminRoomForm] = useState(initialFormState);
 
@@ -415,6 +421,11 @@ useEffect(() => {
       price_per_night: room.price_per_night || room.price || '',
       amenities: Array.isArray(room.amenities) ? room.amenities.join(', ') : (room.amenities || ''),
       image_url: room.img || room.image_url || '',
+      weekendPrice: room.weekendPrice || room.weekend_price ||'',
+      discount: room.discount || '',
+      reviews_rating: room.reviews?.rating || '',
+      reviews_count: room.reviews?.count || '',
+      reviews_comment: room.reviews?.comment || ''
     });
   };
 
@@ -430,6 +441,13 @@ useEffect(() => {
         price_per_night: adminRoomForm.price_per_night,
         amenities: adminRoomForm.amenities,
         image_url: adminRoomForm.image_url,
+        weekendPrice: adminRoomForm.weekendPrice,
+        discount: adminRoomForm.discount,
+        reviews: {
+          rating: adminRoomForm.reviews_rating,
+          count: adminRoomForm.reviews_count,
+          comment: adminRoomForm.reviews_comment
+        }
       };
       const id = roomToEdit.room_id || roomToEdit.id;
       const res = await axios.put(`http://localhost:5000/api/rooms/${id}`, updatedRoom);
@@ -567,7 +585,7 @@ return (
               justifyContent: "center",
               zIndex: 1000
             }}>
-              <div style={{ position: "relative" }}>
+              <div style={{ position: "relative", maxHeight: 600, maxWidth: 480, width: "100%", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "32px 24px 24px 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <button onClick={handleAdminRoomClose} style={{ position: "absolute", top: 8, right: 8, fontSize: 18, background: "none", border: "none", cursor: "pointer" }}>×</button>
                 <AdminRoom
                   formValues={adminRoomForm}

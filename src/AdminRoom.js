@@ -13,6 +13,11 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
     price_per_night: "",
     amenities: "",
     image_url: "",
+    weekendPrice: "",
+    discount: "",
+    reviews_rating: "",
+    reviews_count: "",
+    reviews_comment: ""
   });
 
   // Sync local state sa propsima ako se koristi controlled
@@ -27,6 +32,11 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
       price_per_night: "",
       amenities: "",
       image_url: "",
+      weekendPrice: "",
+      discount: "",
+      reviews_rating: "",
+      reviews_count: "",
+      reviews_comment: ""
     });
   }, [onClose]);
 
@@ -54,6 +64,13 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
       price_per_night: getValue("price_per_night") ? parseFloat(getValue("price_per_night")) : undefined,
       amenities: getValue("amenities").trim() ? getValue("amenities").split(",").map(a => a.trim()) : [],
       image_url: getValue("image_url"),
+      weekendPrice: getValue("weekendPrice"),
+      discount: getValue("discount"),
+      reviews: {
+        rating: getValue("reviews_rating"),
+        count: getValue("reviews_count"),
+        comment: getValue("reviews_comment")
+      }
     };
     try {
       const response = await axios.post("http://localhost:5000/api/rooms", roomData);
@@ -151,6 +168,41 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
           onChange={(e) => setValue("image_url", e.target.value)}
           placeholder="URL slike sobe"
           required
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("weekendPrice")}
+          onChange={(e) => setValue("weekendPrice", e.target.value)}
+          placeholder="Cena za vikend"
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("discount")}
+          onChange={(e) => setValue("discount", e.target.value)}
+          placeholder="Popust (npr. 10% za 7+ noći)"
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("reviews_rating")}
+          onChange={(e) => setValue("reviews_rating", e.target.value)}
+          placeholder="Ocena (rating)"
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("reviews_count")}
+          onChange={(e) => setValue("reviews_count", e.target.value)}
+          placeholder="Broj recenzija (count)"
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="text"
+          value={getValue("reviews_comment")}
+          onChange={(e) => setValue("reviews_comment", e.target.value)}
+          placeholder="Komentar recenzije"
         />
         <button
           type="submit"
