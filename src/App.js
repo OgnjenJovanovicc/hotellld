@@ -12,7 +12,7 @@ import ContactSection from './components/ContactSection';
 import AdminRoom from "./AdminRoom";
 
 // Importujte slike za sobe
-import krevet1 from './assest/krevet1.webp';
+/*import krevet1 from './assest/krevet1.webp';
 import krevet23 from './assest/krevet23.webp';
 import economic from './assest/economic.webp';
 import viewroom from './assest/planinasoba.webp';
@@ -20,13 +20,13 @@ import pethouse from './assest/penthouse.webp';
 import petfriendly from './assest/petfrindly.avif';
 import rooms1 from './assest/rooms.jpg';
 import sobax from './assest/sobax .jpg';
-import family from './assest/family.webp';
-import hotelimage from'./assest/hotelimage.png';
-import reservation from './assest/reservation.jpg';
-import background1 from './assest/slika1.webp';
-import background2 from './assest/slika2.webp';
-import background3 from './assest/slika3.webp';
-import background4 from './assest/hotel.webp';
+import family from './assest/family.webp';*/
+//import hotelimage from'./assest/hotelimage.png';
+//import reservation from './assest/reservation.jpg';
+//import background1 from './assest/slika1.webp';
+//import background2 from './assest/slika2.webp';
+//import background3 from './assest/slika3.webp';
+//import background4 from './assest/hotel.webp';
 import ReservationPage from './ReservationPage';
 import { ToastContainer,toast } from 'react-toastify';
 import AOS from 'aos';
@@ -256,13 +256,25 @@ const rooms = [
   },*/
 ];
 
+// Dodaj granice cene (možeš ih podesiti po potrebi)
+const minRoomPrice = 0;
+const maxRoomPrice = 680;
+
 function App() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginForm, setIsLoginForm] = useState(true);
   const [user, setUser] = useState(null);
   const detailsRef = useRef(null);
-  const backgroundImages = [background1, background2, background3, background4];
+  const hotelimage='./assest/hotelimage.png';
+  const reservation = './assest/reservation.jpg';
+  //const backgroundImages = [background1, background2, background3, background4];
+  const backgroundImages = [
+  "/assest/slika1.webp",
+  "/assest/slika2.webp",
+  "/assest/slika3.webp",
+  "/assest/hotel.webp"
+];
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
@@ -510,8 +522,106 @@ useEffect(() => {
       toast.error("Greška pri brisanju sobe");
     }
   };
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [roomIdToDelete, setRoomIdToDelete] = useState(null);
 
-return (
+  const handleDeleteRoomClick = (room_id) => {
+    setRoomIdToDelete(room_id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    await handleDeleteRoom(roomIdToDelete);
+    setShowDeleteConfirm(false);
+    setRoomIdToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setRoomIdToDelete(null);
+  };
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filters, setFilters] = useState({
+    maxPrice: maxRoomPrice,
+    capacity: '',
+    date: '',
+    amenities: [],
+    rating: ''
+  });
+
+  const amenityOptions = [
+    'Wi-Fi', // Prilagođeno bazi
+    'Privatno kupatilo',
+    'Doručak uključen',
+    'Teretana'
+  ];
+
+  const handleFilterChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setFilters((prev) => ({
+        ...prev,
+        amenities: checked
+          ? [...prev.amenities, value]
+          : prev.amenities.filter((a) => a !== value)
+      }));
+    } else {
+      setFilters((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleFilterReset = () => {
+    setFilters({ maxPrice: maxRoomPrice, capacity: '', date: '', amenities: [], rating: '' });
+  };
+
+  const handlePriceRangeChange = (e) => {
+    const value = Number(e.target.value);
+    setFilters((prev) => ({ ...prev, maxPrice: value }));
+  };
+
+  const filterRooms = (rooms) => {
+    return rooms.filter((room) => {
+      // Cena (samo maksimalna)
+      if (filters.maxPrice && Number(room.price) > Number(filters.maxPrice)) return false;
+      // Kapacitet
+      if (filters.capacity && Number(room.capacity) < Number(filters.capacity)) return false;
+      // Ocena
+      if (filters.rating && room.reviews && Number(room.reviews.rating) < Number(filters.rating)) return false;
+      // Pogodnosti
+      if (filters.amenities.length > 0) {
+        // Normalizuj na mala slova i bez crtice za upoređivanje
+        const roomAmenities = Array.isArray(room.amenities)
+          ? room.amenities.map(x => String(x).toLowerCase().replace(/-/g, '').replace(/\s/g, ''))
+          : [String(room.amenities || '').toLowerCase().replace(/-/g, '').replace(/\s/g, '')];
+        for (let a of filters.amenities) {
+          const normA = a.toLowerCase().replace(/-/g, '').replace(/\s/g, '');
+          if (!roomAmenities.some(amen => amen.includes(normA))) return false;
+        }
+      }
+      // Datum dostupnosti (ovde samo placeholder, implementiraj po potrebi)
+      // if (filters.date) { ... }
+      return true;
+    });
+  };
+
+  const filteredRooms = filterRooms(allRooms);
+
+  // Funkcija za promenu oba klizača
+  const handlePriceRangeChangeOld = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => {
+      let max = Number(prev.maxPrice);
+      if (name === 'maxPrice') {
+        max = Math.max(Number(value), minRoomPrice + 1);
+      }
+      // Ograniči opseg
+      max = Math.min(maxRoomPrice, Math.max(max, minRoomPrice + 1));
+      return { ...prev, maxPrice: max };
+    });
+  };
+
+  return (
   <Routes>
     {/* Glavna stranica */}
     <Route
@@ -535,6 +645,103 @@ return (
        hotelimage,reservation
       ]
       } />
+      {/* Dugme za filtere */}
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
+        <button className="add-room-button" style={{ background: '#2563eb' }} onClick={() => setShowFilterModal(true)}>
+          Filtriraj sobe
+        </button>
+      </div>
+      {/* Modal za filtere */}
+      {showFilterModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+            borderRadius: 18,
+            padding: '38px 32px 32px 32px',
+            minWidth: 340,
+            maxWidth: 420,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+            position: 'relative',
+            border: '1.5px solid #d4af37',
+            animation: 'fadeInModal 0.4s',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+          }}>
+            <button onClick={() => setShowFilterModal(false)} style={{ position: 'absolute', top: 12, right: 16, fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#444', fontWeight: 700, transition: 'color 0.2s' }}
+              onMouseOver={e => e.target.style.color = '#d4af37'}
+              onMouseOut={e => e.target.style.color = '#444'}
+            >×</button>
+            <h2 style={{ marginBottom: 22, color: '#222', fontWeight: 700, letterSpacing: 1, textAlign: 'center', fontSize: '1.5rem' }}>Filtriraj sobe</h2>
+            <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Cena po noći */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontWeight: 500, color: '#333', marginBottom: 0 }}>
+                  Maksimalna cena po noći:
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#444', marginBottom: 2 }}>
+                    <span>0 €</span>
+                    <span>{filters.maxPrice} €</span>
+                    <span>{maxRoomPrice} €</span>
+                  </div>
+                  <input
+                    type="range"
+                    name="maxPrice"
+                    min={minRoomPrice}
+                    max={maxRoomPrice}
+                    value={filters.maxPrice}
+                    onChange={handlePriceRangeChange}
+                    className="price-slider"
+                    style={{ accentColor: '#d4af37' }}
+                  />
+                </div>
+              </div>
+              {/* Kapacitet */}
+              <label style={{ fontWeight: 500, color: '#333' }}>
+                Kapacitet:
+                <input type="number" name="capacity" min="1" value={filters.capacity} onChange={handleFilterChange} style={{ width: 100, borderRadius: 6, border: '1px solid #bbb', padding: '7px 10px', fontSize: 15, marginTop: 4 }} />
+              </label>
+              {/* Datum */}
+              <label style={{ fontWeight: 500, color: '#333' }}>
+                Datum:
+                <input type="date" name="date" value={filters.date} onChange={handleFilterChange} style={{ borderRadius: 6, border: '1px solid #bbb', padding: '7px 10px', fontSize: 15, marginTop: 4 }} />
+              </label>
+              {/* Pogodnosti */}
+              <label style={{ fontWeight: 500, color: '#333' }}>
+                Usluge i pogodnosti:
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+                  {amenityOptions.map((a) => (
+                    <label key={a} style={{ fontWeight: 400, color: '#444', background: '#f3f4f6', borderRadius: 6, padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', border: '1px solid #e5e7eb' }}>
+                      <input type="checkbox" name="amenities" value={a} checked={filters.amenities.includes(a)} onChange={handleFilterChange} style={{ marginRight: 5 }} /> {a}
+                    </label>
+                  ))}
+                </div>
+              </label>
+              {/* Ocena */}
+              <label style={{ fontWeight: 500, color: '#333' }}>
+                Ocena sobe:
+                <select name="rating" value={filters.rating} onChange={handleFilterChange} style={{ borderRadius: 6, border: '1px solid #bbb', padding: '7px 10px', fontSize: 15, marginTop: 4 }}>
+                  <option value="">Bilo koja</option>
+                  <option value="4">4+</option>
+                  <option value="4.5">4.5+</option>
+                  <option value="5">5</option>
+                </select>
+              </label>
+              <div style={{ display: 'flex', gap: 14, marginTop: 18, justifyContent: 'center' }}>
+                <button type="button" className="add-room-button" style={{ background: '#2563eb', fontWeight: 600, fontSize: 16, borderRadius: 7, padding: '10px 22px', transition: 'background 0.2s' }} onClick={() => setShowFilterModal(false)}
+                  onMouseOver={e => e.target.style.background = '#1e40af'}
+                  onMouseOut={e => e.target.style.background = '#2563eb'}
+                >Primeni</button>
+                <button type="button" className="add-room-button" style={{ background: '#d4af37', color: '#fff', fontWeight: 600, fontSize: 16, borderRadius: 7, padding: '10px 22px', transition: 'background 0.2s' }} onClick={handleFilterReset}
+                  onMouseOver={e => e.target.style.background = '#b79422'}
+                  onMouseOut={e => e.target.style.background = '#d4af37'}
+                >Resetuj</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
           {/* Dugme za dodavanje sobe za admina */}
           {user?.role === 'admin' && (
             <div className="admin-room-button-wrapper" style={{ marginBottom: 24, textAlign: 'center' }}>
@@ -544,7 +751,7 @@ return (
             </div>
           )}
             <RoomsSection className="rooms-section fade-in"
-              rooms={allRooms}
+              rooms={filteredRooms}
               handleDetails={handleDetails}
               selectedRoom={selectedRoom}
               detailsRef={detailsRef}
@@ -559,7 +766,7 @@ return (
                   }
                 ]);
               }}
-              onDeleteRoom={handleDeleteRoom}
+              onDeleteRoom={handleDeleteRoomClick}
               onEditRoom={handleEditRoom}
             />
             <ContactSection className="fade-in" />
@@ -618,6 +825,58 @@ return (
               closeModal={closeModal}
             />
           )}
+          {showDeleteConfirm && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    background: "rgba(0,0,0,0.3)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2000
+  }}>
+    <div style={{
+      background: "#fff",
+      borderRadius: 10,
+      padding: 32,
+      minWidth: 280,
+      boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+      textAlign: "center"
+    }}>
+      <p style={{ marginBottom: 24 }}>Da li ste sigurni da želite da izbrišete ovu sobu?</p>
+      <button
+        style={{
+          marginRight: 16,
+          background: "#e53e3e",
+          color: "#fff",
+          padding: "8px 20px",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer"
+        }}
+        onClick={handleConfirmDelete}
+      >
+        Da
+      </button>
+      <button
+        style={{
+          background: "#eee",
+          color: "#222",
+          padding: "8px 20px",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer"
+        }}
+        onClick={handleCancelDelete}
+      >
+        Ne
+      </button>
+    </div>
+  </div>
+)}
         </div>
       }
     />

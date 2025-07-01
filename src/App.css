@@ -1,3 +1,101 @@
+/* Dual-thumb price slider styles */
+.price-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  background: transparent;
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.price-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #d4af37;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.price-slider:focus::-webkit-slider-thumb {
+  border: 3px solid #2563eb;
+  box-shadow: 0 0 0 4px #2563eb33;
+}
+.price-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #d4af37;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.price-slider:focus::-moz-range-thumb {
+  border: 3px solid #2563eb;
+  box-shadow: 0 0 0 4px #2563eb33;
+}
+.price-slider::-ms-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #d4af37;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.price-slider:focus::-ms-thumb {
+  border: 3px solid #2563eb;
+  box-shadow: 0 0 0 4px #2563eb33;
+}
+
+
+/* MODERN VISIBLE TRACK FOR PRICE SLIDER */
+.price-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: linear-gradient(90deg, #d4af37 0%, #f8fafc 100%);
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.price-slider::-ms-fill-lower,
+.price-slider::-ms-fill-upper {
+  background: #d4af37;
+  border-radius: 3px;
+}
+.price-slider:focus {
+  outline: none;
+}
+.price-slider::-moz-range-track {
+  height: 6px;
+  background: linear-gradient(90deg, #d4af37 0%, #f8fafc 100%);
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.price-slider::-ms-tooltip {
+  display: none;
+}
+
+/* Hide the default track for all browsers */
+.price-slider::-webkit-slider-thumb { z-index: 10; }
+.price-slider::-webkit-slider-container { background: transparent; }
+.price-slider::-webkit-slider-runnable-track { background: transparent; }
+.price-slider::-ms-fill-lower { background: transparent; }
+.price-slider::-ms-fill-upper { background: transparent; }
+.price-slider::-moz-range-track { background: transparent; }
+.price-slider::-ms-tooltip { display: none; }
+
+/* For Firefox to allow pointer events on overlapping sliders */
+.price-slider {
+  pointer-events: auto;
+}
 /* Globalno */
 :root {
   --accent: #d4af37;          /* Zlatna */
@@ -9,7 +107,7 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: white;
+  background-color: none;
   color: #333;
 }
 
@@ -25,7 +123,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
+  padding: 20px 33px;
   background: rgba(20, 20, 20, 0.4);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -89,9 +187,10 @@ body {
   overflow: hidden;
 }
 
+
 .hero-section::after {
   content: "";
-  position: absolute;
+  position: relative;
   inset: 0;
   background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
   z-index: 1;
