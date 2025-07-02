@@ -497,7 +497,8 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
       discount: room.discount || '',
       reviews_rating: room.reviews?.rating || '',
       reviews_count: room.reviews?.count || '',
-      reviews_comment: room.reviews?.comment || ''
+      reviews_comment: room.reviews?.comment || '',
+      total_units: room.total_units !== undefined ? String(room.total_units) : ''
     });
   };
 
@@ -518,8 +519,9 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
         reviews: {
           rating: adminRoomForm.reviews_rating,
           count: adminRoomForm.reviews_count,
-          comment: adminRoomForm.reviews_comment
-        }
+          comment: adminRoomForm.reviews_comment,
+        },
+         total_units: adminRoomForm.total_units
       };
       const id = roomToEdit.room_id || roomToEdit.id;
       const res = await axios.put(`http://localhost:5000/api/rooms/${id}`, updatedRoom);

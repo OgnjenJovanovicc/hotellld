@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const { Client } = require('pg');
@@ -41,6 +42,40 @@ client.connect()
 // Osnovna ruta za testiranje servera
 app.get('/', (req, res) => {
   res.send('Hello, PostgreSQL!');
+});
+// Endpoint: Vrati broj slobodnih soba za dati tip i period
+app.get('/api/rooms/available-count', async (req, res) => {
+  const { room_type, start_date, end_date } = req.query;
+  if (!room_type || !start_date || !end_date) {
+    return res.status(400).json({ error: 'room_type, start_date i end_date su obavezni query parametri' });
+  }
+  try {
+    // 1. Uzmi total_units za dati tip sobe
+    const roomResult = await pool.query(
+      'SELECT total_units FROM rooms WHERE room_type = $1 LIMIT 1',
+      [room_type]
+    );
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Nema takvog tipa sobe' });
+    }
+    const totalUnits = roomResult.rows[0].total_units || 0;
+    // 2. Suma rezervisanih jedinica za taj tip i period
+    const reservationsResult = await pool.query(
+      `SELECT COALESCE(SUM(r.units_reserved),0) as zauzeto
+       FROM reservations r
+       JOIN rooms ro ON r.room_id = ro.room_id
+       WHERE ro.room_type = $1
+         AND NOT (r.end_date < $2 OR r.start_date > $3)
+         AND r.status = 'Confirmed'`,
+      [room_type, start_date, end_date]
+    );
+    const zauzeto = parseInt(reservationsResult.rows[0].zauzeto, 10) || 0;
+    const availableCount = Math.max(totalUnits - zauzeto, 0);
+    res.json({ availableCount });
+  } catch (error) {
+    console.error('Greška pri dohvatanju broja slobodnih soba:', error);
+    res.status(500).json({ error: 'Greška pri dohvatanju broja slobodnih soba' });
+  }
 });
 
 // Ruta za dodavanje novog korisnika (registracija)
@@ -211,39 +246,63 @@ app.post('/api/contact', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-app.get('/api/reservations/:roomType', async (req, res) => {
+// Novi endpoint: Broj rezervisanih jedinica po danu za dati tip sobe
+app.get('/api/reservations/:roomType/units-per-day', async (req, res) => {
   const { roomType } = req.params;
-
+  // Opcionalno: period za koji želiš podatke (možeš proširiti po potrebi)
+  const { from, to } = req.query;
   try {
-    const result = await pool.query(
-      `SELECT r.start_date, r.end_date
-       FROM reservations r
-       JOIN rooms ro ON r.room_id = ro.room_id
-       WHERE ro.room_type = $1
-       AND r.end_date >= CURRENT_DATE`, // Samo aktivne/buduće rezervacije
-      [roomType]
-    );
+    // Prvo uzmi total_units za taj tip
+    const roomResult = await pool.query('SELECT total_units FROM rooms WHERE room_type = $1 LIMIT 1', [roomType]);
+    const totalUnits = roomResult.rows[0]?.total_units || 0;
 
-    // Koristimo Set da izbegnemo duplikate
-    const bookedDatesSet = new Set();
+    // Odredi period (default: danas do +60 dana)
+    const startDate = from || new Date().toISOString().split('T')[0];
+    const endDate = to || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    result.rows.forEach(({ start_date, end_date }) => {
-      const start = new Date(start_date);
-      const end = new Date(end_date);
-      
-      // Prolazimo kroz sve datume između start_date i end_date
-      for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-        const dateString = date.toISOString().split('T')[0];
-        bookedDatesSet.add(dateString);
-      }
+    // Za svaki dan u periodu, izračunaj sumu units_reserved
+    const sql = `
+      SELECT d::date as date, COALESCE(SUM(r.units_reserved),0) as reserved
+      FROM generate_series($2::date, $3::date, interval '1 day') d
+      LEFT JOIN reservations r ON r.room_id IN (
+        SELECT room_id FROM rooms WHERE room_type = $1
+      )
+      AND d BETWEEN r.start_date AND r.end_date
+      AND r.status = 'Confirmed'
+      GROUP BY d
+      ORDER BY d
+    `;
+    const result = await pool.query(sql, [roomType, startDate, endDate]);
+    // Format: { date: '2025-07-03', reserved: 2 }
+    const map = {};
+    result.rows.forEach(row => {
+      // UVEK koristi ISO format YYYY-MM-DD kao ključ
+      let isoDate = row.date instanceof Date
+        ? row.date.toISOString().split('T')[0]
+        : (typeof row.date === 'string' && row.date.length >= 10 ? row.date.slice(0, 10) : String(row.date));
+      map[isoDate] = { reserved: Number(row.reserved), total: totalUnits };
+    });
+    // DODATNI ISPIS ZA DEBUG
+    console.log('units-per-day DEBUG:', {
+      roomType,
+      totalUnits,
+      startDate,
+      endDate,
+      resultRows: result.rows,
+      map
     });
 
-    // Konvertujemo Set u niz i sortiramo datume
-    const bookedDates = Array.from(bookedDatesSet).sort();
-
-    res.json(bookedDates);
+    // Posebno ispiši za svaki dan u periodu
+    Object.entries(map).forEach(([date, val]) => {
+      if (val.reserved >= val.total && val.total > 0) {
+        console.log(`[DISABLED-DAY] ${date}: reserved=${val.reserved}, total=${val.total}`);
+      } else {
+        console.log(`[ENABLED-DAY] ${date}: reserved=${val.reserved}, total=${val.total}`);
+      }
+    });
+    res.json(map);
   } catch (error) {
-    console.error('Greška pri dohvatanju zauzetih datuma:', error);
+    console.error('Greška pri dohvatanju zauzetih jedinica po danu:', error);
     res.status(500).json({ error: 'Greška pri dohvatanju rezervacija' });
   }
 });
@@ -252,10 +311,10 @@ app.get('/api/reservations/:roomType', async (req, res) => {
 app.post('/api/reservations', async (req, res) => {
   console.log('📥 Primljeni podaci:', req.body);
 
-  const { room_id, start_date, end_date, adults, children, guest_info } = req.body;
+  const { room_id, start_date, end_date, adults, children, guest_info, units_reserved } = req.body;
 
   // ✅ Validacija osnovnih polja
-  if (!room_id || !start_date || !end_date || !adults || !guest_info) {
+  if (!room_id || !start_date || !end_date || !adults || !guest_info || !units_reserved) {
     console.error('❌ Nedostaju obavezni podaci');
     return res.status(400).json({ error: 'Nedostaju obavezni podaci' });
   }
@@ -285,14 +344,39 @@ app.post('/api/reservations', async (req, res) => {
     return res.status(400).json({ error: 'Datum kraja mora biti posle datuma početka' });
   }
 
-  // ✅ Izračunavanje ukupne cene
-  const total_price = calculateTotalPrice(start, end, adults, children);
-
+  // Provera dostupnosti pre upisa
   try {
+    // 1. Uzmi tip sobe i total_units
+    const roomResult = await pool.query('SELECT room_type FROM rooms WHERE room_id = $1', [room_id]);
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Soba nije pronađena' });
+    }
+    const roomType = roomResult.rows[0].room_type;
+    const totalUnitsResult = await pool.query('SELECT total_units FROM rooms WHERE room_type = $1 LIMIT 1', [roomType]);
+    const totalUnits = totalUnitsResult.rows[0]?.total_units || 0;
+    // 2. Suma rezervisanih jedinica za taj tip i period
+    const reservationsResult = await pool.query(
+      `SELECT COALESCE(SUM(r.units_reserved),0) as zauzeto
+       FROM reservations r
+       JOIN rooms ro ON r.room_id = ro.room_id
+       WHERE ro.room_type = $1
+         AND NOT (r.end_date < $2 OR r.start_date > $3)
+         AND r.status = 'Confirmed'`,
+      [roomType, start.toISOString().split('T')[0], end.toISOString().split('T')[0]]
+    );
+    const zauzeto = parseInt(reservationsResult.rows[0].zauzeto, 10) || 0;
+    const availableCount = Math.max(totalUnits - zauzeto, 0);
+    if (units_reserved > availableCount) {
+      return res.status(400).json({ error: 'Nema dovoljno slobodnih soba za izabrani period' });
+    }
+
+    // ✅ Izračunavanje ukupne cene
+    const total_price = calculateTotalPrice(start, end, adults, children);
+
     const result = await pool.query(
       `INSERT INTO reservations 
-       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone, units_reserved)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         room_id,
@@ -302,22 +386,23 @@ app.post('/api/reservations', async (req, res) => {
         children || 0,
         total_price,  
         "Confirmed",
-      `${guest_info.firstName} ${guest_info.lastName}`,
+        `${guest_info.firstName} ${guest_info.lastName}`,
         guest_info.email,
-        guest_info.phone
+        guest_info.phone,
+        units_reserved
       ]
     );
 
     console.log('✅ Uspešno sačuvana rezervacija:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-  console.error('Greška pri čuvanju rezervacije:', error);
-  res.status(500).json({ 
-    error: 'Ovo e greska', // možeš promeniti poruku
-    details: error.message, // dodaj i ovo da vidiš tačan error na frontu/Postmanu
+    console.error('Greška pri čuvanju rezervacije:', error);
+    res.status(500).json({ 
+      error: 'Greška pri čuvanju rezervacije',
+      details: error.message,
       stack: error.stack
-  });
-}
+    });
+  }
 });
 
 app.post("/api/rooms", async (req, res) => {
@@ -333,7 +418,8 @@ app.post("/api/rooms", async (req, res) => {
     image_url,
     weekendPrice,
     discount,
-    reviews
+    reviews,
+    total_units
   } = req.body;
 
   // Parsiranje amenities uvek u niz
@@ -352,15 +438,16 @@ app.post("/api/rooms", async (req, res) => {
     !description ||
     !long_description ||
     !price_per_night ||
-    !image_url
+    !image_url ||
+    total_units === undefined
   ) {
     return res.status(400).json({ error: "Nedostaju neophodni podaci." });
   }
 
   try {
     const result = await pool.query(
-      `INSERT INTO rooms (room_number, room_type, capacity, description, long_description, price_per_night, amenities, image_url, weekend_price, discount, reviews) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      `INSERT INTO rooms (room_number, room_type, capacity, description, long_description, price_per_night, amenities, image_url, weekend_price, discount, reviews, total_units) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
       [
         parseInt(room_number, 10),
         room_type,
@@ -372,7 +459,8 @@ app.post("/api/rooms", async (req, res) => {
         image_url ,
         weekendPrice || null,
         discount || null,
-        reviews ? JSON.stringify(reviews) : null
+        reviews ? JSON.stringify(reviews) : null,
+        parseInt(total_units, 10)
       ]
     );
     res.status(201).json(result.rows[0]);
@@ -469,7 +557,8 @@ app.put("/api/rooms/:room_id", async (req, res) => {
       image_url,
       weekendPrice,
       discount,
-      reviews
+      reviews,
+      total_units
     } = req.body;
 
     // Parsiranje amenities uvek u niz
@@ -491,8 +580,9 @@ app.put("/api/rooms/:room_id", async (req, res) => {
       image_url = $8,
       weekend_price = $9,
       discount = $10,
-      reviews = $11
-      WHERE room_id = $12 RETURNING *`;
+      reviews = $11,
+      total_units = $12
+      WHERE room_id = $13 RETURNING *`;
     const values = [
       parseInt(room_number, 10),
       room_type,
@@ -505,6 +595,7 @@ app.put("/api/rooms/:room_id", async (req, res) => {
       weekendPrice || null,
       discount || null,
       reviews ? JSON.stringify(reviews) : null,
+      parseInt(total_units, 10),
       room_id
     ];
     const result = await pool.query(updateQuery, values);

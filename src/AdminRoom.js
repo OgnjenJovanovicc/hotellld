@@ -17,7 +17,8 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
     discount: "",
     reviews_rating: "",
     reviews_count: "",
-    reviews_comment: ""
+    reviews_comment: "",
+    total_units: ""
   });
 
   // Sync local state sa propsima ako se koristi controlled
@@ -36,7 +37,8 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
       discount: "",
       reviews_rating: "",
       reviews_count: "",
-      reviews_comment: ""
+      reviews_comment: "",
+      total_units: ""
     });
   }, [onClose]);
 
@@ -70,7 +72,8 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
         rating: getValue("reviews_rating"),
         count: getValue("reviews_count"),
         comment: getValue("reviews_comment")
-      }
+      },
+      total_units: getValue("total_units") ? parseInt(getValue("total_units"), 10) : undefined
     };
     try {
       const response = await axios.post("http://localhost:5000/api/rooms", roomData);
@@ -203,6 +206,14 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
           value={getValue("reviews_comment")}
           onChange={(e) => setValue("reviews_comment", e.target.value)}
           placeholder="Komentar recenzije"
+        />
+        <input
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
+          type="number"
+          value={getValue("total_units")}
+          onChange={(e) => setValue("total_units", e.target.value)}
+          placeholder="Ukupan broj jedinica (total_units)"
+          required
         />
         <button
           type="submit"

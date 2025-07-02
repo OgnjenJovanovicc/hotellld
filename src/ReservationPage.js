@@ -11,12 +11,12 @@ import  {LinearProgress, Box, Typography } from '@mui/material';
 import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+
 const ReservationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useLocation();
   const room = state?.room;
- //  const { room } = location.state || {};
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [reservationStartMessage, setReservationStartMessage] = useState("");
@@ -25,7 +25,8 @@ const ReservationPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [adults, setAdults] = useState(1);
   const [total_price,setTotalPrice]=useState(0);
-  const [bookedDates, setBookedDates] = useState([]);
+const [bookedDates, setBookedDates] = useState([]); // Stari način (niz datuma, sada više nije potreban)
+const [unitsPerDay, setUnitsPerDay] = useState({}); // Novi način: mapa datuma na {reserved, total}
   const [children, setChildren] = useState(0);
   const [paymentOption, setPaymentOption] = useState('naknadno');
   const [isFormVisible, setFormVisible] = useState(false);
@@ -40,92 +41,107 @@ const ReservationPage = () => {
     confirmEmail: '',
     additionalInfo: ''
   });
+  const [unitsReserved, setUnitsReserved] = useState(1); // Broj soba koje korisnik želi
+  const [maxAvailable, setMaxAvailable] = useState(null); // Maksimalno slobodnih soba za period
   const roomType = room?.room_type || room?.type;
 
+// Novi način: Onemogući datum samo ako je broj rezervisanih jedinica >= total
 const shouldDisableDate = (date) => {
-  if (!bookedDates || !bookedDates.length) return false;
-  // Konvertujemo Date objekat u string u formatu YYYY-MM-DD
-  const dateStr = date.toISOString().split('T')[0];
-  const isDisabled = bookedDates.includes(dateStr);
-  // Debug logovi
-  if (isDisabled) {
-    console.log('DISABLED:', dateStr, 'je u bookedDates', bookedDates);
+  if (!unitsPerDay) return false;
+  // Koristi lokalni datum, ne UTC!
+  const dateStr = date.getFullYear() + '-' +
+    String(date.getMonth() + 1).padStart(2, '0') + '-' +
+    String(date.getDate()).padStart(2, '0');
+  const info = unitsPerDay[dateStr];
+  if (!info) {
+    console.log(`[shouldDisableDate] ${dateStr}: info=undefined`);
+    return false;
   }
-  return isDisabled;
+  console.log(`[shouldDisableDate] ${dateStr}: reserved=${info.reserved}, total=${info.total}, info=`, info);
+  if (info.reserved >= info.total && info.total > 0) {
+    console.log(`[shouldDisableDate] DISABLED: ${dateStr} (reserved=${info.reserved}, total=${info.total})`, info);
+    return true;
+  }
+  return false;
 };
   
+// Novi način: Fetch zauzetost po danu za tip sobe
 useEffect(() => {
-  console.log('Room objekat:', room);
-  console.log('Dostupni propertyji:', Object.keys(room || {}));
-  // Prikazujemo vrednost room_type i type
-  console.log('room.room_type:', room?.room_type, 'room.type:', room?.type);
   const typeForFetch = room?.room_type || room?.type;
-  if (!typeForFetch) {
-    console.error('Nedostaje tip sobe');
-    return;
-  }
-  const fetchBookedDates = async () => {
-    console.log('Početak slanja zahteva za type:', typeForFetch);
+  if (!typeForFetch) return;
+  const fetchUnitsPerDay = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/reservations/${typeForFetch}`,{
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Odgovor primljen', response);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // period: danas do +60 dana
+      const today = new Date();
+      const from = today.toISOString().split('T')[0];
+      const toDate = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
+      const to = toDate.toISOString().split('T')[0];
+      const response = await fetch(`http://localhost:5000/api/reservations/${typeForFetch}/units-per-day?from=${from}&to=${to}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      console.log("Dobijeni podaci (bookedDates):", data);
-      if (!Array.isArray(data)) {
-        throw new Error('Očekivan je niz datuma');
-      }
-      setBookedDates(data); // Backend već vraća niz stringova
+      setUnitsPerDay(data);
     } catch (error) {
-      console.error('Greška prilikom učitavanja zauzetih datuma:', error);
+      console.error('Greška prilikom učitavanja zauzetosti po danu:', error);
     }
   };
-  fetchBookedDates();
+  fetchUnitsPerDay();
 }, [room?.room_type, room?.type]);
+
+// Fetch maksimalno slobodnih soba za izabrani period
+useEffect(() => {
+  const fetchMaxAvailable = async () => {
+    if (!roomType || !startDate || !endDate) return;
+    try {
+      const response = await fetch(`http://localhost:5000/api/rooms/available-count?room_type=${encodeURIComponent(roomType)}&start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`);
+      if (!response.ok) throw new Error('Ne mogu da dobijem broj slobodnih soba');
+      const data = await response.json();
+      setMaxAvailable(data.availableCount);
+      // Ako je unitsReserved veći od maxAvailable, smanji ga
+      setUnitsReserved(prev => Math.min(prev, data.availableCount));
+    } catch (e) {
+      setMaxAvailable(null);
+    }
+  };
+  fetchMaxAvailable();
+}, [roomType, startDate, endDate]);
+  // Potvrda rezervacije - šalje i units_reserved
   const handleConfirmReservation1 = async () => {
-  try {
-    // Provera da li su svi potrebni podaci prisutni
-    if (!room?.id || !startDate || !endDate || !userData.firstName || !userData.email) {
-      throw new Error('Nedostaju obavezni podaci za rezervaciju');
+    try {
+      if (!room?.id || !startDate || !endDate || !userData.firstName || !userData.email) {
+        throw new Error('Nedostaju obavezni podaci za rezervaciju');
+      }
+      if (!unitsReserved || unitsReserved < 1) {
+        throw new Error('Morate izabrati broj soba');
+      }
+      if (maxAvailable !== null && unitsReserved > maxAvailable) {
+        throw new Error('Nema dovoljno slobodnih soba za izabrani period');
+      }
+      const response = await fetch('http://localhost:5000/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          room_id: room.id,
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          adults,
+          children,
+          guest_info: userData,
+          units_reserved: unitsReserved
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Došlo je do greške pri čuvanju rezervacije');
+      }
+      toast.success(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
+      setFormVisible(false);
+    } catch (error) {
+      console.error('Greška:', error);
+      toast.error(error.message || 'Došlo je do greške pri čuvanju rezervacije. Pokušajte ponovo.');
     }
-
-    const response = await fetch('http://localhost:5000/api/reservations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        room_id: room.id,
-        start_date: startDate.toISOString().split('T')[0], // Samo datum bez vremena
-        end_date: endDate.toISOString().split('T')[0],
-        adults,
-        children,
-        guest_info: userData
-      })
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      // Ako backend vraća detalje o grešci
-      throw new Error(data.error || 'Došlo je do greške pri čuvanju rezervacije');
-    }
-
-    toast.success(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
-    setFormVisible(false);
-    
-  } catch (error) {
-    console.error('Greška:', error);
-    toast.error(error.message || 'Došlo je do greške pri čuvanju rezervacije. Pokušajte ponovo.');
-  }
-};
+  };
   
  // Promenite dependency u room.type
   if (!room) {
@@ -160,26 +176,43 @@ useEffect(() => {
   const handleStepClick = (step) => {
     setCurrentStep(step);
   };
+  // Proverava da li je bilo koji dan u opsegu potpuno rezervisan
   const validateDates = (start, end) => {
     if (start && end && new Date(start) > new Date(end)) {
       setError("Datum početka ne može biti veći od datuma kraja.");
-    } else {
-      setError(""); // Resetuj grešku ako su datumi ispravni
+      return;
     }
+    // Proveri da li je bilo koji dan u opsegu potpuno rezervisan
+    if (start && end && unitsPerDay) {
+      let d = new Date(start);
+      const endD = new Date(end);
+      let foundFullyBooked = false;
+      while (d <= endD) {
+        const dateStr = d.toISOString().split('T')[0];
+        const info = unitsPerDay[dateStr];
+        if (info && info.reserved >= info.total && info.total > 0) {
+          foundFullyBooked = true;
+          break;
+        }
+        d.setDate(d.getDate() + 1);
+      }
+      if (foundFullyBooked) {
+        setError("Izabrani opseg sadrži dan koji je potpuno rezervisan. Molimo izaberite drugi opseg.");
+        return;
+      }
+    }
+    setError(""); // Resetuj grešku ako su datumi ispravni
   };
   const calculateTotalPrice = () => {
     if (!startDate || !endDate) return 0;
-    
     // Izračunavanje broja dana
     const timeDiff = endDate.getTime() - startDate.getTime();
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 da uključi i početni dan
-    
     // Cena po osobi po danu
-    const pricePerAdultPerDay = 50;
-    const pricePerChildPerDay = 25;
-    
-    // Ukupna cena
-    return (adults * pricePerAdultPerDay + children * pricePerChildPerDay) * daysDiff;
+    // Ako room ima cenu, koristi je, inače fallback
+    const pricePerNight = room?.price || 50;
+    // Ukupna cena = broj soba * cena po noći * broj noći
+    return unitsReserved * pricePerNight * daysDiff;
   };
 
   
@@ -190,6 +223,19 @@ useEffect(() => {
 
   return (
     <div className={styles.reservationContainer}>
+      {/* <pre style={{fontSize:10, color:'red', background:'#fff', maxHeight:120, overflow:'auto'}}>
+        {JSON.stringify(unitsPerDay, null, 2)}
+      </pre> */}
+      {/*
+      <div style={{fontSize:10, color:'blue', background:'#fff', maxHeight:120, overflow:'auto'}}>
+        <b>roomType:</b> {roomType}<br/>
+        <b>room.id:</b> {room?.id} <b>room.room_id:</b> {room?.room_id} <b>room.room_type:</b> {room?.room_type}<br/>
+        <b>startDate:</b> {startDate && startDate.toISOString()}<br/>
+        <b>endDate:</b> {endDate && endDate.toISOString()}<br/>
+        <b>maxAvailable:</b> {String(maxAvailable)}<br/>
+        <b>unitsReserved:</b> {String(unitsReserved)}
+      </div>
+      */}
     <div className={styles.heroSection}>
       <h1>Rezervacija</h1>
     </div>
@@ -280,123 +326,131 @@ useEffect(() => {
 
       {/* Korak 1 */}
       {currentStep === 1 && (
-         <div className={styles.formContainer}>
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <div className={styles.formGroup}>
-            <label>Datum početka:</label>
-            <DatePicker
-              value={startDate} // ili selected={startDate} za `react-datepicker`
-              onChange={(date) => {
-                
-              setStartDate(date); // Direktno postavljamo `date`
-              validateDates(date, endDate); // Proveravamo validnost datuma
-             
-              if (date) {
-                const dateWithTime = new Date(date);
-                dateWithTime.setHours(7, 0, 0, 0);
-                
-                // Formatirajte datum na srpskom
-                const options = { 
-                  day: 'numeric', 
-                  month: 'long', 
-                  year: 'numeric' 
-                };
-                const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
-                setReservationStartMessage(`Rezervacija važi od ${formattedDate} od 7:00`);
-              } else {
-                setReservationStartMessage("");
-              }
-            }  
-          }
-            renderInput={(params) => <TextField {...params} fullWidth />}   
-            shouldDisableDate={shouldDisableDate}
-          />
-   {reservationStartMessage && (
-        <div style={{
-          marginTop: '10px',
-          padding: '8px',
-          backgroundColor: 'rgba(25, 25, 25, 0.4)',
-          borderLeft: '3px solid rgba(0, 0, 0, 0.76)',
-          color: 'white',
-          borderRadius: '4px',
-          fontSize: '0.9rem'
-        }}>
-          {reservationStartMessage}
-        </div>
-    )}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Datum kraja:</label>
-            <DatePicker
-              value={endDate} // ili selected={endDate} za `react-datepicker`
-              onChange={(date) => {
-              setEndDate(date); // Direktno postavljamo `date`
-              validateDates(startDate, date); // Proveravamo validnost datuma
-              if (date) {
-                const dateWithTime = new Date(date);
-                dateWithTime.setHours(22, 0, 0, 0);
-                
-                // Formatirajte datum na srpskom
-                const options = { 
-                  day: 'numeric', 
-                  month: 'long', 
-                  year: 'numeric' 
-                };
-                const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
-                setReservationEndMessage(`Rezervacija važi od ${formattedDate} do 22:00`);
-              } else {
-                setReservationEndMessage("");
-              }
-            }}
-            
-            renderInput={(params) => <TextField {...params} fullWidth />}
-            shouldDisableDate={shouldDisableDate}
-            />
-             {reservationEndMessage && (
-        <div style={{
-          marginTop: '10px',
-          padding: '8px',
-          backgroundColor: 'rgba(25, 25, 25, 0.4)',
-          borderLeft: '3px solid rgba(0, 0, 0, 0.76)',
-          color: 'white',
-          borderRadius: '4px',
-          fontSize: '0.9rem'
-        }}>
-          {reservationEndMessage}
-        </div>
-             )}
-          </div>
-          {error && <p className={styles.errorText}>{error}</p>}
-          <div className={styles.formGroup}>
-            <label>Broj odraslih:</label>
-            <div className={styles.counterInput}>
-              <button onClick={() => setAdults(adults > 1 ? adults - 1 : 1)} className={styles.counterButtonRed}>
-                <FaMinus />
-              </button>
-              <span>{adults}</span>
-              <button onClick={() => setAdults(adults + 1)} className={styles.counterButton}>
-                <FaPlus />
-              </button>
+        <div className={styles.formContainer}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <div className={styles.formGroup}>
+              <label>Datum početka:</label>
+              <DatePicker
+                value={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
+                  validateDates(date, endDate);
+                  if (date) {
+                    const dateWithTime = new Date(date);
+                    dateWithTime.setHours(7, 0, 0, 0);
+                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                    const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
+                    setReservationStartMessage(`Rezervacija važi od ${formattedDate} od 7:00`);
+                  } else {
+                    setReservationStartMessage("");
+                  }
+                }}
+                renderInput={(params) => <TextField {...params} fullWidth />}   
+                shouldDisableDate={shouldDisableDate}
+              />
+              {reservationStartMessage && (
+                <div style={{
+                  marginTop: '10px',
+                  padding: '8px',
+                  backgroundColor: 'rgba(25, 25, 25, 0.4)',
+                  borderLeft: '3px solid rgba(0, 0, 0, 0.76)',
+                  color: 'white',
+                  borderRadius: '4px',
+                  fontSize: '0.9rem'
+                }}>
+                  {reservationStartMessage}
+                </div>
+              )}
             </div>
-          </div>
-          <div className={styles.formGroup}>
-            <label>Broj dece:</label>
-            <div className={styles.counterRow}>
-            <div className={styles.counterInput}>
-              <button onClick={() => setChildren(children > 0 ? children - 1 : 0)} className={styles.counterButtonRed}>
-                <FaMinus />
-              </button>
-              <span>{children}</span>
-              <button onClick={() => setChildren(children + 1)} className={styles.counterButton}>
-                <FaPlus />
-              </button>
+            <div className={styles.formGroup}>
+              <label>Datum kraja:</label>
+              <DatePicker
+                value={endDate}
+                onChange={(date) => {
+                  setEndDate(date);
+                  validateDates(startDate, date);
+                  if (date) {
+                    const dateWithTime = new Date(date);
+                    dateWithTime.setHours(22, 0, 0, 0);
+                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                    const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
+                    setReservationEndMessage(`Rezervacija važi od ${formattedDate} do 22:00`);
+                  } else {
+                    setReservationEndMessage("");
+                  }
+                }}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+                shouldDisableDate={shouldDisableDate}
+              />
+              {reservationEndMessage && (
+                <div style={{
+                  marginTop: '10px',
+                  padding: '8px',
+                  backgroundColor: 'rgba(25, 25, 25, 0.4)',
+                  borderLeft: '3px solid rgba(0, 0, 0, 0.76)',
+                  color: 'white',
+                  borderRadius: '4px',
+                  fontSize: '0.9rem'
+                }}>
+                  {reservationEndMessage}
+                </div>
+              )}
             </div>
-          <div className={styles.totalPrice}>
-           <div>Ukupna cena: </div> <strong className={styles.priceHighlight}>{totalPrice}€</strong>
-          </div>
-          </div>  
-          </div>
+            {error && <p className={styles.errorText}>{error}</p>}
+            <div className={styles.formGroup}>
+              <label>Broj soba:</label>
+              <div className={styles.counterInput}>
+                <button
+                  onClick={() => setUnitsReserved(Math.max(1, unitsReserved - 1))}
+                  className={styles.counterButtonRed}
+                  disabled={unitsReserved <= 1}
+                >
+                  <FaMinus />
+                </button>
+                <span>{unitsReserved}</span>
+                <button
+                  onClick={() => setUnitsReserved(Math.min((maxAvailable || 1), unitsReserved + 1))}
+                  className={styles.counterButton}
+                  disabled={maxAvailable !== null && unitsReserved >= maxAvailable}
+                >
+                  <FaPlus />
+                </button>
+              </div>
+              {maxAvailable !== null && (
+                <div style={{ color: maxAvailable > 0 ? 'green' : 'red', fontSize: 13, marginTop: 4 }}>
+                  Slobodno soba za izabrani period: <b>{maxAvailable}</b>
+                </div>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label>Broj odraslih:</label>
+              <div className={styles.counterInput}>
+                <button onClick={() => setAdults(adults > 1 ? adults - 1 : 1)} className={styles.counterButtonRed}>
+                  <FaMinus />
+                </button>
+                <span>{adults}</span>
+                <button onClick={() => setAdults(adults + 1)} className={styles.counterButton}>
+                  <FaPlus />
+                </button>
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Broj dece:</label>
+              <div className={styles.counterRow}>
+                <div className={styles.counterInput}>
+                  <button onClick={() => setChildren(children > 0 ? children - 1 : 0)} className={styles.counterButtonRed}>
+                    <FaMinus />
+                  </button>
+                  <span>{children}</span>
+                  <button onClick={() => setChildren(children + 1)} className={styles.counterButton}>
+                    <FaPlus />
+                  </button>
+                </div>
+                <div className={styles.totalPrice}>
+                  <div>Ukupna cena: </div> <strong className={styles.priceHighlight}>{totalPrice}€</strong>
+                </div>
+              </div>
+            </div>
           </LocalizationProvider>
         </div>
       )}
@@ -496,11 +550,12 @@ useEffect(() => {
     <ul className={styles.summaryList}>
       <li><strong>Početak:</strong> {startDate?.toLocaleDateString()}</li>
       <li><strong>Kraj:</strong> {endDate?.toLocaleDateString()}</li>
+      <li><strong>Broj soba:</strong> {unitsReserved}</li>
       <li><strong>Odrasli:</strong> {adults}</li>
       <li><strong>Deca:</strong> {children}</li>
       <li className={styles.totalPrice}>
-      <strong>UKUPNO:</strong> <span className={styles.priceHighlight}>{totalPrice}€</span>
-    </li>
+        <strong>UKUPNO:</strong> <span className={styles.priceHighlight}>{totalPrice}€</span>
+      </li>
     </ul>
 
     <div className={styles.paymentSection}>
