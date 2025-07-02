@@ -1,3 +1,239 @@
+/* Modern filter modal styles (glassmorphism, layout, icons, chips, result count) */
+.filter-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+
+.filter-modal-glass {
+  background: rgba(255,255,255,0.78);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  border-radius: 18px;
+  padding: 32px 20px 24px 20px;
+  min-width: 340px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  border: 1.5px solid #d4af37;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+  backdrop-filter: blur(14px) saturate(1.2);
+  animation: fadeInModal 0.4s;
+  transition: min-height 0.2s, height 0.2s, width 0.2s;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.filter-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filter-modal-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #f3f4f6;
+  color: #444;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 14px;
+  margin: 2px 6px 2px 0;
+  border: 1px solid #e5e7eb;
+  font-weight: 500;
+  transition: background 0.18s, color 0.18s;
+}
+.filter-modal-chip.active {
+  background: #d4af37;
+  color: #fff;
+  border-color: #d4af37;
+}
+
+.filter-modal-amenity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 4px 10px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.18s, border 0.18s;
+}
+.filter-modal-amenity input[type="checkbox"] {
+  margin-right: 5px;
+}
+.filter-modal-amenity.active {
+  background: #d4af37;
+  color: #fff;
+  border-color: #d4af37;
+}
+
+.filter-modal-result-count {
+  text-align: center;
+  font-size: 15px;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.filter-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #444;
+  font-weight: 700;
+  transition: color 0.2s;
+}
+.filter-modal-close:hover {
+  color: #d4af37;
+}
+
+.filter-modal-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+  justify-content: center;
+}
+.filter-modal-actions button {
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 7px;
+  padding: 10px 22px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.filter-modal-actions .apply {
+  background: #2563eb;
+  color: #fff;
+}
+.filter-modal-actions .apply:hover {
+  background: #1e40af;
+}
+.filter-modal-actions .reset {
+  background: #d4af37;
+  color: #fff;
+}
+.filter-modal-actions .reset:hover {
+  background: #b79422;
+}
+
+/* Price slider modern style (if needed for modal) */
+/* Wrapper for slider and bubble */
+.price-slider-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 18px;
+  margin-top: 8px;
+  height: 56px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.price-slider {
+  width: 100%;
+  margin-top: 4px;
+  accent-color: #d4af37;
+  background: transparent;
+  position: relative;
+  z-index: 2;
+}
+
+/* Bubble above slider handle */
+.price-slider-bubble {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #d4af37;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 4px 16px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  border: 2px solid #d4af37;
+  pointer-events: none;
+  z-index: 5;
+  transition: left 0.18s cubic-bezier(.4,2,.6,1), background 0.18s;
+  min-width: 60px;
+  text-align: center;
+}
+.price-slider::-webkit-slider-thumb {
+  background: #d4af37;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border: 2px solid #fff;
+  transition: box-shadow 0.2s;
+}
+.price-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px #f7e7b6;
+}
+.price-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: linear-gradient(90deg, #d4af37 0%, #f3f4f6 100%);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.price-slider::-ms-fill-lower {
+  background: #f3f4f6;
+}
+.price-slider::-ms-fill-upper {
+  background: #f3f4f6;
+}
+.price-slider:focus {
+  outline: none;
+}
+.price-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 6px #f7e7b6;
+}
+.price-slider::-moz-range-thumb:hover {
+  box-shadow: 0 0 0 6px #f7e7b6;
+}
+.price-slider::-ms-thumb:hover {
+  box-shadow: 0 0 0 6px #f7e7b6;
+}
+
+@media (max-width: 600px) {
+  .filter-modal-glass {
+    min-width: 90vw;
+    max-width: 98vw;
+    width: 98vw;
+    max-height: 98vh;
+    padding: 16px 4px 12px 4px;
+  }
+  .price-slider-bubble {
+    font-size: 15px;
+    min-width: 44px;
+    padding: 3px 8px;
+    top: 32px;
+  }
+}
 /* Dual-thumb price slider styles */
 .price-slider {
   -webkit-appearance: none;

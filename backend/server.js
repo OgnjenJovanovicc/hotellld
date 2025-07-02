@@ -90,6 +90,55 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Endpoint: Vrati ID-jeve zauzetih soba za dati period
+app.get('/api/rooms/unavailable', async (req, res) => {
+  const { start_date, end_date } = req.query;
+  if (!start_date || !end_date) {
+    return res.status(400).json({ error: 'start_date i end_date su obavezni query parametri' });
+  }
+  try {
+    // Pronađi sve sobe koje imaju makar jednu rezervaciju koja se preklapa sa zadatim periodom
+    const result = await pool.query(
+      `SELECT DISTINCT room_id FROM reservations
+       WHERE NOT (end_date < $1 OR start_date > $2)`,
+      [start_date, end_date]
+    );
+    const unavailableRoomIds = result.rows.map(r => r.room_id);
+    res.json(unavailableRoomIds);
+  } catch (error) {
+    console.error('Greška pri dohvatanju zauzetih soba:', error);
+    res.status(500).json({ error: 'Greška pri dohvatanju zauzetih soba' });
+  }
+});
+
+// Endpoint: Vrati sve slobodne sobe za dati period
+app.get('/api/rooms/available', async (req, res) => {
+  const { start_date, end_date } = req.query;
+  if (!start_date || !end_date) {
+    return res.status(400).json({ error: 'start_date i end_date su obavezni query parametri' });
+  }
+  try {
+    // Sobe koje nemaju nijednu rezervaciju koja se preklapa sa zadatim periodom
+    const result = await pool.query(`
+      SELECT r.* FROM rooms r
+      WHERE r.room_id NOT IN (
+        SELECT room_id FROM reservations
+        WHERE NOT (end_date < $1 OR start_date > $2)
+      )
+    `, [start_date, end_date]);
+    const availableRooms = result.rows;
+    res.json(availableRooms);
+  } catch (error) {
+    console.error('Greška pri dohvatanju slobodnih soba:', error);
+    // Vrati detalje greške na frontend radi lakšeg debugovanja
+    res.status(500).json({ 
+      error: 'Greška pri dohvatanju slobodnih soba',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 app.get('/api/rooms', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM rooms');
@@ -115,7 +164,8 @@ app.get('/api/rooms/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await client.query('SELECT * FROM rooms WHERE id = $1', [id]);
+    // Ispravljeno: koristi room_id umesto id
+    const result = await client.query('SELECT * FROM rooms WHERE room_id = $1', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Room not found' });
     }

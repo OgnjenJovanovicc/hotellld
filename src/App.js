@@ -261,10 +261,23 @@ const minRoomPrice = 0;
 const maxRoomPrice = 680;
 
 function App() {
+  // OSTAJE SAMO OVAJ useState ZA FILTERS
+  const [filters, setFilters] = useState({
+    maxPrice: maxRoomPrice,
+    capacity: '',
+    startDate: '',
+    endDate: '',
+    amenities: [],
+    rating: ''
+  });
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginForm, setIsLoginForm] = useState(true);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    // Pokušaj da pročitaš korisnika iz localStorage
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const detailsRef = useRef(null);
   const hotelimage='./assest/hotelimage.png';
   const reservation = './assest/reservation.jpg';
@@ -321,9 +334,9 @@ function App() {
           sifra: loginData.sifra,
           role: response.data.user.role,
         };
-  
         setUser(newUser); // Ažuriraj stanje korisnika
-        console.log("User state after login:", newUser);
+        // Sačuvaj korisnika u localStorage
+        localStorage.setItem("user", JSON.stringify(newUser));
         setIsModalOpen(false); // Zatvori modal
         toast.success("Uspešno prijavljen korisnik!");
       }
@@ -335,6 +348,7 @@ function App() {
   
   const handleLogout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("user"); // Ukloni korisnika iz localStorage
     setUser(null);
     toast.info("Uspešno ste se odjavili.");
   };
@@ -398,6 +412,52 @@ useEffect(() => {
 
 
   const [allRooms, setAllRooms] = useState(rooms);
+  // State za sve sobe iz baze (za reset filtera)
+  const [allRoomsBackup, setAllRoomsBackup] = useState([]);
+
+  // Povuci sve sobe iz baze na pocetku i sacuvaj backup
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/rooms") 
+      .then(response => {
+        const formattedRooms = response.data.map(dbRoom => ({
+          ...dbRoom,
+          id: dbRoom.id || dbRoom.room_id || `db_${dbRoom.room_number}_${Date.now()}_${Math.random()}`,
+          img: dbRoom.img || dbRoom.image_url,
+          title: dbRoom.title || `Soba ${dbRoom.room_number}`,
+          price: dbRoom.price || dbRoom.price_per_night,
+          longDescription: dbRoom.long_description || dbRoom.long_description || "",
+        }));
+        setAllRooms(formattedRooms);
+        setAllRoomsBackup(formattedRooms);
+      })
+      .catch(error => {
+        console.error("Greška pri učitavanju soba:", error);
+      });
+  }, []);
+
+  // Kada korisnik izabere oba datuma, povuci slobodne sobe iz backenda
+  useEffect(() => {
+    if (filters.startDate && filters.endDate) {
+axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startDate}&end_date=${filters.endDate}`)        .then(res => {
+          const formattedRooms = res.data.map(dbRoom => ({
+            ...dbRoom,
+            id: dbRoom.id || dbRoom.room_id || `db_${dbRoom.room_number}_${Date.now()}_${Math.random()}`,
+            img: dbRoom.img || dbRoom.image_url,
+            title: dbRoom.title || `Soba ${dbRoom.room_number}`,
+            price: dbRoom.price || dbRoom.price_per_night,
+            longDescription: dbRoom.long_description || dbRoom.long_description || "",
+          }));
+          setAllRooms(formattedRooms);
+        })
+        .catch(err => {
+          console.error('Greška pri dohvatanju slobodnih soba:', err);
+        });
+    } else {
+      // Ako nema oba datuma, prikazi sve sobe
+      setAllRooms(allRoomsBackup);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.startDate, filters.endDate]);
 
   // Dodato za modal i formu za dodavanje sobe
   const [showAddRoomForm, setShowAddRoomForm] = useState(false);
@@ -542,19 +602,14 @@ useEffect(() => {
   };
 
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [filters, setFilters] = useState({
-    maxPrice: maxRoomPrice,
-    capacity: '',
-    date: '',
-    amenities: [],
-    rating: ''
-  });
+  // ...existing code...
 
+  // Ikone za pogodnosti
   const amenityOptions = [
-    'Wi-Fi', // Prilagođeno bazi
-    'Privatno kupatilo',
-    'Doručak uključen',
-    'Teretana'
+    { label: 'Wi-Fi', icon: '📶', tooltip: 'Bežični internet' },
+    { label: 'Privatno kupatilo', icon: '🚿', tooltip: 'Sopstveno kupatilo' },
+    { label: 'Doručak uključen', icon: '🍳', tooltip: 'Doručak je uključen u cenu' },
+    { label: 'Teretana', icon: '💪', tooltip: 'Pristup teretani' }
   ];
 
   const handleFilterChange = (e) => {
@@ -571,8 +626,10 @@ useEffect(() => {
     }
   };
 
+  // Izmeni reset filtera da vraca sve sobe
   const handleFilterReset = () => {
-    setFilters({ maxPrice: maxRoomPrice, capacity: '', date: '', amenities: [], rating: '' });
+    setFilters({ maxPrice: maxRoomPrice, capacity: '', startDate: '', endDate: '', amenities: [], rating: '' });
+    setAllRooms(allRoomsBackup);
   };
 
   const handlePriceRangeChange = (e) => {
@@ -599,8 +656,21 @@ useEffect(() => {
           if (!roomAmenities.some(amen => amen.includes(normA))) return false;
         }
       }
-      // Datum dostupnosti (ovde samo placeholder, implementiraj po potrebi)
-      // if (filters.date) { ... }
+      // Datum dostupnosti (osnovna provera - placeholder, zameni sa pravom logikom kada budeš imao rezervacije)
+      if (filters.startDate && filters.endDate) {
+        // Primer: room.bookings = [{start: '2025-07-01', end: '2025-07-05'}, ...]
+        if (Array.isArray(room.bookings)) {
+          const start = new Date(filters.startDate);
+          const end = new Date(filters.endDate);
+          // Ako postoji preklapanje sa nekom rezervacijom, soba NIJE dostupna
+          const overlaps = room.bookings.some(b => {
+            const bStart = new Date(b.start);
+            const bEnd = new Date(b.end);
+            return (start <= bEnd && end >= bStart);
+          });
+          if (overlaps) return false;
+        }
+      }
       return true;
     });
   };
@@ -653,37 +723,31 @@ useEffect(() => {
       </div>
       {/* Modal za filtere */}
       {showFilterModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
-            borderRadius: 18,
-            padding: '38px 32px 32px 32px',
-            minWidth: 340,
-            maxWidth: 420,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-            position: 'relative',
-            border: '1.5px solid #d4af37',
-            animation: 'fadeInModal 0.4s',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-          }}>
-            <button onClick={() => setShowFilterModal(false)} style={{ position: 'absolute', top: 12, right: 16, fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#444', fontWeight: 700, transition: 'color 0.2s' }}
-              onMouseOver={e => e.target.style.color = '#d4af37'}
-              onMouseOut={e => e.target.style.color = '#444'}
+        <div className="filter-modal-overlay">
+          <div className="filter-modal-glass">
+            <button
+              onClick={() => setShowFilterModal(false)}
+              className="filter-modal-close"
+              aria-label="Zatvori filter modal"
             >×</button>
-            <h2 style={{ marginBottom: 22, color: '#222', fontWeight: 700, letterSpacing: 1, textAlign: 'center', fontSize: '1.5rem' }}>Filtriraj sobe</h2>
-            <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {/* Cena po noći */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontWeight: 500, color: '#333', marginBottom: 0 }}>
-                  Maksimalna cena po noći:
+            <h2 className="filter-modal-title">Filtriraj sobe</h2>
+            <form className="filter-modal-form">
+              {/* Cena po noći - lepši prikaz */}
+              <div className="filter-modal-group" style={{ marginBottom: 18 }}>
+                <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 16, color: '#222', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span role="img" aria-label="novac" style={{ fontSize: 20, color: '#d4af37' }}>💶</span>
+                  Maksimalna cena po noći
                 </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#444', marginBottom: 2 }}>
-                    <span>0 €</span>
-                    <span>{filters.maxPrice} €</span>
-                    <span>{maxRoomPrice} €</span>
+                <div className="price-slider-wrapper">
+                  <span style={{ color: '#888', fontSize: 14, minWidth: 32, alignSelf: 'flex-end' }}>{minRoomPrice} €</span>
+                  <div
+                    className="price-slider-bubble"
+                    style={{
+                      left: '50%',
+                      transform: 'translateX(-50%)'
+                    }}
+                  >
+                    {filters.maxPrice} €
                   </div>
                   <input
                     type="range"
@@ -693,49 +757,116 @@ useEffect(() => {
                     value={filters.maxPrice}
                     onChange={handlePriceRangeChange}
                     className="price-slider"
-                    style={{ accentColor: '#d4af37' }}
+                    style={{ accentColor: '#d4af37', width: '100%' }}
                   />
+                  <span style={{ color: '#888', fontSize: 14, minWidth: 32, alignSelf: 'flex-end' }}>{maxRoomPrice} €</span>
                 </div>
               </div>
               {/* Kapacitet */}
-              <label style={{ fontWeight: 500, color: '#333' }}>
-                Kapacitet:
-                <input type="number" name="capacity" min="1" value={filters.capacity} onChange={handleFilterChange} style={{ width: 100, borderRadius: 6, border: '1px solid #bbb', padding: '7px 10px', fontSize: 15, marginTop: 4 }} />
-              </label>
-              {/* Datum */}
-              <label style={{ fontWeight: 500, color: '#333' }}>
-                Datum:
-                <input type="date" name="date" value={filters.date} onChange={handleFilterChange} style={{ borderRadius: 6, border: '1px solid #bbb', padding: '7px 10px', fontSize: 15, marginTop: 4 }} />
-              </label>
+              <div className="filter-modal-group">
+                <label className="filter-modal-label">Kapacitet:</label>
+                <input type="number" name="capacity" min="1" value={filters.capacity} onChange={handleFilterChange} className="filter-modal-input" />
+              </div>
+              {/* Period boravka */}
+              <div className="filter-modal-group">
+                <label className="filter-modal-label">Datum početka:</label>
+                <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="filter-modal-input" />
+              </div>
+              <div className="filter-modal-group">
+                <label className="filter-modal-label">Datum završetka:</label>
+                <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="filter-modal-input" />
+              </div>
               {/* Pogodnosti */}
-              <label style={{ fontWeight: 500, color: '#333' }}>
-                Usluge i pogodnosti:
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+              <div className="filter-modal-group">
+                <label className="filter-modal-label">Usluge i pogodnosti:</label>
+                <div className="filter-modal-amenities">
                   {amenityOptions.map((a) => (
-                    <label key={a} style={{ fontWeight: 400, color: '#444', background: '#f3f4f6', borderRadius: 6, padding: '4px 10px', display: 'flex', alignItems: 'center', cursor: 'pointer', border: '1px solid #e5e7eb' }}>
-                      <input type="checkbox" name="amenities" value={a} checked={filters.amenities.includes(a)} onChange={handleFilterChange} style={{ marginRight: 5 }} /> {a}
+                    <label
+                      key={a.label}
+                      className={`filter-modal-amenity${filters.amenities.includes(a.label) ? ' active' : ''}`}
+                      title={a.tooltip}
+                    >
+                      <input
+                        type="checkbox"
+                        name="amenities"
+                        value={a.label}
+                        checked={filters.amenities.includes(a.label)}
+                        onChange={handleFilterChange}
+                      />
+                      <span className="filter-modal-amenity-icon">{a.icon}</span>
+                      <span>{a.label}</span>
                     </label>
                   ))}
                 </div>
-              </label>
-              {/* Ocena */}
-              <label style={{ fontWeight: 500, color: '#333' }}>
-                Ocena sobe:
-                <select name="rating" value={filters.rating} onChange={handleFilterChange} style={{ borderRadius: 6, border: '1px solid #bbb', padding: '7px 10px', fontSize: 15, marginTop: 4 }}>
-                  <option value="">Bilo koja</option>
-                  <option value="4">4+</option>
-                  <option value="4.5">4.5+</option>
-                  <option value="5">5</option>
-                </select>
-              </label>
-              <div style={{ display: 'flex', gap: 14, marginTop: 18, justifyContent: 'center' }}>
-                <button type="button" className="add-room-button" style={{ background: '#2563eb', fontWeight: 600, fontSize: 16, borderRadius: 7, padding: '10px 22px', transition: 'background 0.2s' }} onClick={() => setShowFilterModal(false)}
-                  onMouseOver={e => e.target.style.background = '#1e40af'}
-                  onMouseOut={e => e.target.style.background = '#2563eb'}
+              </div>
+              {/* Ocena - zvezdice umesto padajućeg menija */}
+              <div className="filter-modal-group">
+                <label className="filter-modal-label">Ocena sobe:</label>
+                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                  {[1,2,3,4,5].map((star) => (
+                    <span
+                      key={star}
+                      onClick={() => setFilters(prev => ({ ...prev, rating: star === Number(prev.rating) ? '' : star }))}
+                      style={{
+                        fontSize: 26,
+                        color: star <= Number(filters.rating) ? '#d4af37' : '#bbb',
+                        cursor: 'pointer',
+                        transition: 'color 0.18s',
+                        userSelect: 'none',
+                        filter: star <= Number(filters.rating) ? 'drop-shadow(0 1px 2px #d4af3740)' : 'none',
+                      }}
+                      title={star + ' zvezdica' + (star > 1 ? 'e' : '')}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <span
+                    onClick={() => setFilters(prev => ({ ...prev, rating: '' }))}
+                    style={{
+                      fontSize: 15,
+                      color: '#888',
+                      marginLeft: 10,
+                      cursor: 'pointer',
+                      textDecoration: filters.rating === '' ? 'underline' : 'none',
+                      alignSelf: 'center',
+                    }}
+                  >
+                    bilo koja
+                  </span>
+                </div>
+              </div>
+              {/* Aktivni filteri kao chips */}
+              <div className="filter-modal-chips-row">
+                {filters.capacity && (
+                  <span className="filter-modal-chip" title="Kapacitet">👥 {filters.capacity}</span>
+                )}
+                {filters.amenities.map(a => {
+                  const found = amenityOptions.find(opt => opt.label === a);
+                  return (
+                    <span className="filter-modal-chip" key={a} title={found?.tooltip || a}>{found?.icon || '✔️'} {a}</span>
+                  );
+                })}
+                {filters.rating && (
+                  <span className="filter-modal-chip" title="Ocena">⭐ {filters.rating}+</span>
+                )}
+                {filters.maxPrice !== maxRoomPrice && (
+                  <span className="filter-modal-chip" title="Maksimalna cena">💶 {filters.maxPrice} €</span>
+                )}
+              </div>
+              {/* Broj rezultata */}
+              <div className="filter-modal-results-count">
+                Pronađeno soba: <b>{filteredRooms.length}</b>
+              </div>
+              <div className="filter-modal-actions">
+                <button
+                  type="button"
+                  className="add-room-button filter-modal-apply"
+                  onClick={() => setShowFilterModal(false)}
                 >Primeni</button>
-                <button type="button" className="add-room-button" style={{ background: '#d4af37', color: '#fff', fontWeight: 600, fontSize: 16, borderRadius: 7, padding: '10px 22px', transition: 'background 0.2s' }} onClick={handleFilterReset}
-                  onMouseOver={e => e.target.style.background = '#b79422'}
-                  onMouseOut={e => e.target.style.background = '#d4af37'}
+                <button
+                  type="button"
+                  className="add-room-button filter-modal-reset"
+                  onClick={handleFilterReset}
                 >Resetuj</button>
               </div>
             </form>
