@@ -250,15 +250,18 @@ app.listen(port, () => {
 app.get('/api/reservations/:roomType/units-per-day', async (req, res) => {
   const { roomType } = req.params;
   // Opcionalno: period za koji želiš podatke (možeš proširiti po potrebi)
-  const { from, to } = req.query;
+  let { from, to } = req.query;
   try {
     // Prvo uzmi total_units za taj tip
     const roomResult = await pool.query('SELECT total_units FROM rooms WHERE room_type = $1 LIMIT 1', [roomType]);
     const totalUnits = roomResult.rows[0]?.total_units || 0;
 
     // Odredi period (default: danas do +60 dana)
-    const startDate = from || new Date().toISOString().split('T')[0];
-    const endDate = to || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    // Ispravi: koristi tačno prosleđene vrednosti, bez pomeranja
+    // Ako from ili to nisu validni datumi, koristi danas i +60 dana
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    let startDate = (from && dateRegex.test(from)) ? from : new Date().toISOString().split('T')[0];
+    let endDate = (to && dateRegex.test(to)) ? to : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     // Za svaki dan u periodu, izračunaj sumu units_reserved
     const sql = `
@@ -267,7 +270,7 @@ app.get('/api/reservations/:roomType/units-per-day', async (req, res) => {
       LEFT JOIN reservations r ON r.room_id IN (
         SELECT room_id FROM rooms WHERE room_type = $1
       )
-      AND d BETWEEN r.start_date AND r.end_date
+   AND d > r.start_date AND d <= (r.end_date + interval '1 day')
       AND r.status = 'Confirmed'
       GROUP BY d
       ORDER BY d
@@ -330,19 +333,22 @@ app.post('/api/reservations', async (req, res) => {
     return res.status(400).json({ error: 'Nepotpuni podaci o gostu' });
   }
 
-  // ✅ Parsiranje i provera datuma
-  const start = new Date(start_date);
-  const end = new Date(end_date);
-
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+  // ✅ Parsiranje i provera datuma (uvek koristi lokalni dan, bez vremenske zone)
+  // Očekuje se da su start_date i end_date u formatu 'YYYY-MM-DD'
+  // Provera validnosti stringa bez Date objekta
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(start_date) || !dateRegex.test(end_date)) {
     console.error('❌ Neispravan format datuma');
     return res.status(400).json({ error: 'Neispravan format datuma' });
   }
-
-  if (end < start) {
+  // Provera da li je end_date >= start_date
+  if (end_date < start_date) {
     console.error('❌ Datum kraja je pre datuma početka');
     return res.status(400).json({ error: 'Datum kraja mora biti posle datuma početka' });
   }
+  // Za izračunavanje cene koristi Date objekte sa fiksnim vremenom
+  const start = new Date(start_date + 'T12:00:00');
+  const end = new Date(end_date + 'T12:00:00');
 
   // Provera dostupnosti pre upisa
   try {
@@ -355,6 +361,7 @@ app.post('/api/reservations', async (req, res) => {
     const totalUnitsResult = await pool.query('SELECT total_units FROM rooms WHERE room_type = $1 LIMIT 1', [roomType]);
     const totalUnits = totalUnitsResult.rows[0]?.total_units || 0;
     // 2. Suma rezervisanih jedinica za taj tip i period
+    // UVEK koristi stringove u formatu YYYY-MM-DD za upite
     const reservationsResult = await pool.query(
       `SELECT COALESCE(SUM(r.units_reserved),0) as zauzeto
        FROM reservations r
@@ -362,7 +369,7 @@ app.post('/api/reservations', async (req, res) => {
        WHERE ro.room_type = $1
          AND NOT (r.end_date < $2 OR r.start_date > $3)
          AND r.status = 'Confirmed'`,
-      [roomType, start.toISOString().split('T')[0], end.toISOString().split('T')[0]]
+      [roomType, start_date, end_date]
     );
     const zauzeto = parseInt(reservationsResult.rows[0].zauzeto, 10) || 0;
     const availableCount = Math.max(totalUnits - zauzeto, 0);
@@ -373,6 +380,7 @@ app.post('/api/reservations', async (req, res) => {
     // ✅ Izračunavanje ukupne cene
     const total_price = calculateTotalPrice(start, end, adults, children);
 
+    // UVEK upisuj stringove u formatu YYYY-MM-DD
     const result = await pool.query(
       `INSERT INTO reservations 
        (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone, units_reserved)
@@ -380,8 +388,8 @@ app.post('/api/reservations', async (req, res) => {
        RETURNING *`,
       [
         room_id,
-        start.toISOString().split('T')[0],
-        end.toISOString().split('T')[0],
+        start_date,
+        end_date,
         adults,
         children || 0,
         total_price,  

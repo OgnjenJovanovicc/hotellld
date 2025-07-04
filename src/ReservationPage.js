@@ -45,24 +45,17 @@ const [unitsPerDay, setUnitsPerDay] = useState({}); // Novi način: mapa datuma 
   const [maxAvailable, setMaxAvailable] = useState(null); // Maksimalno slobodnih soba za period
   const roomType = room?.room_type || room?.type;
 
-// Novi način: Onemogući datum samo ako je broj rezervisanih jedinica >= total
+// Disable every fully booked day (simple per-day check)
 const shouldDisableDate = (date) => {
   if (!unitsPerDay) return false;
-  // Koristi lokalni datum, ne UTC!
-  const dateStr = date.getFullYear() + '-' +
-    String(date.getMonth() + 1).padStart(2, '0') + '-' +
-    String(date.getDate()).padStart(2, '0');
+  // Uvek koristi lokalni datum bez vremena (YYYY-MM-DD)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateStr = `${year}-${month}-${day}`;
+  // DEBUG: console.log('shouldDisableDate:', dateStr, unitsPerDay[dateStr]);
   const info = unitsPerDay[dateStr];
-  if (!info) {
-    console.log(`[shouldDisableDate] ${dateStr}: info=undefined`);
-    return false;
-  }
-  console.log(`[shouldDisableDate] ${dateStr}: reserved=${info.reserved}, total=${info.total}, info=`, info);
-  if (info.reserved >= info.total && info.total > 0) {
-    console.log(`[shouldDisableDate] DISABLED: ${dateStr} (reserved=${info.reserved}, total=${info.total})`, info);
-    return true;
-  }
-  return false;
+  return info && info.reserved >= info.total && info.total > 0;
 };
   
 // Novi način: Fetch zauzetost po danu za tip sobe
@@ -116,6 +109,14 @@ useEffect(() => {
       if (maxAvailable !== null && unitsReserved > maxAvailable) {
         throw new Error('Nema dovoljno slobodnih soba za izabrani period');
       }
+      // Prava lokalna vrednost datuma (YYYY-MM-DD) bez pomeranja zbog vremenske zone
+      const getLocalDateString = (date) => {
+        if (!(date instanceof Date)) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
       const response = await fetch('http://localhost:5000/api/reservations', {
         method: 'POST',
         headers: {
@@ -123,8 +124,8 @@ useEffect(() => {
         },
         body: JSON.stringify({
           room_id: room.id,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
+          start_date: getLocalDateString(startDate),
+          end_date: getLocalDateString(endDate),
           adults,
           children,
           guest_info: userData,
@@ -182,13 +183,17 @@ useEffect(() => {
       setError("Datum početka ne može biti veći od datuma kraja.");
       return;
     }
-    // Proveri da li je bilo koji dan u opsegu potpuno rezervisan
+    // Proveri da li je bilo koji dan u opsegu potpuno rezervisan (uključujući i poslednji dan)
     if (start && end && unitsPerDay) {
       let d = new Date(start);
       const endD = new Date(end);
       let foundFullyBooked = false;
+      // Proverava dane od start (uključivo) do end (uključivo)
       while (d <= endD) {
-        const dateStr = d.toISOString().split('T')[0];
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
         const info = unitsPerDay[dateStr];
         if (info && info.reserved >= info.total && info.total > 0) {
           foundFullyBooked = true;
@@ -333,15 +338,16 @@ useEffect(() => {
               <DatePicker
                 value={startDate}
                 onChange={(date) => {
-                  setStartDate(date);
-                  validateDates(date, endDate);
-                  if (date) {
-                    const dateWithTime = new Date(date);
-                    dateWithTime.setHours(7, 0, 0, 0);
+                  if (date instanceof Date && !isNaN(date)) {
+                    // Uvek koristi samo datum bez vremena
+                    const onlyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                    setStartDate(onlyDate);
+                    validateDates(onlyDate, endDate);
                     const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                    const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
-                    setReservationStartMessage(`Rezervacija važi od ${formattedDate} od 7:00`);
+                    const formattedDate = onlyDate.toLocaleDateString('sr-RS', options);
+                    setReservationStartMessage(`Rezervacija važi od ${formattedDate} od 18:00`);
                   } else {
+                    setStartDate(null);
                     setReservationStartMessage("");
                   }
                 }}
@@ -367,15 +373,16 @@ useEffect(() => {
               <DatePicker
                 value={endDate}
                 onChange={(date) => {
-                  setEndDate(date);
-                  validateDates(startDate, date);
-                  if (date) {
-                    const dateWithTime = new Date(date);
-                    dateWithTime.setHours(22, 0, 0, 0);
+                  if (date instanceof Date && !isNaN(date)) {
+                    // Uvek koristi samo datum bez vremena
+                    const onlyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                    setEndDate(onlyDate);
+                    validateDates(startDate, onlyDate);
                     const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                    const formattedDate = dateWithTime.toLocaleDateString('sr-RS', options);
-                    setReservationEndMessage(`Rezervacija važi od ${formattedDate} do 22:00`);
+                    const formattedDate = onlyDate.toLocaleDateString('sr-RS', options);
+                    setReservationEndMessage(`Rezervacija važi do ${formattedDate} do 15:00`);
                   } else {
+                    setEndDate(null);
                     setReservationEndMessage("");
                   }
                 }}
