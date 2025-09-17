@@ -25,8 +25,8 @@ const ReservationPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [adults, setAdults] = useState(1);
   const [total_price,setTotalPrice]=useState(0);
-const [bookedDates, setBookedDates] = useState([]); // Stari način (niz datuma, sada više nije potreban)
-const [unitsPerDay, setUnitsPerDay] = useState({}); // Novi način: mapa datuma na {reserved, total}
+const [bookedDates, setBookedDates] = useState([]); 
+const [unitsPerDay, setUnitsPerDay] = useState({}); 
   const [children, setChildren] = useState(0);
   const [paymentOption, setPaymentOption] = useState('naknadno');
   const [isFormVisible, setFormVisible] = useState(false);
@@ -41,30 +41,30 @@ const [unitsPerDay, setUnitsPerDay] = useState({}); // Novi način: mapa datuma 
     confirmEmail: '',
     additionalInfo: ''
   });
-  const [unitsReserved, setUnitsReserved] = useState(1); // Broj soba koje korisnik želi
-  const [maxAvailable, setMaxAvailable] = useState(null); // Maksimalno slobodnih soba za period
+  const [unitsReserved, setUnitsReserved] = useState(1); 
+  const [maxAvailable, setMaxAvailable] = useState(null); 
+  const [cardData, setCardData] = useState({ cardNumber: '', expiryDate: '', cvv: '' });
+  const [cardError, setCardError] = useState('');
   const roomType = room?.room_type || room?.type;
 
-// Disable every fully booked day (simple per-day check)
+
 const shouldDisableDate = (date) => {
   if (!unitsPerDay) return false;
-  // Uvek koristi lokalni datum bez vremena (YYYY-MM-DD)
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${day}`;
-  // DEBUG: console.log('shouldDisableDate:', dateStr, unitsPerDay[dateStr]);
+  
   const info = unitsPerDay[dateStr];
   return info && info.reserved >= info.total && info.total > 0;
 };
   
-// Novi način: Fetch zauzetost po danu za tip sobe
 useEffect(() => {
   const typeForFetch = room?.room_type || room?.type;
   if (!typeForFetch) return;
   const fetchUnitsPerDay = async () => {
     try {
-      // period: danas do +60 dana
+    
       const today = new Date();
       const from = today.toISOString().split('T')[0];
       const toDate = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
@@ -80,7 +80,7 @@ useEffect(() => {
   fetchUnitsPerDay();
 }, [room?.room_type, room?.type]);
 
-// Fetch maksimalno slobodnih soba za izabrani period
+
 useEffect(() => {
   const fetchMaxAvailable = async () => {
     if (!roomType || !startDate || !endDate) return;
@@ -89,7 +89,6 @@ useEffect(() => {
       if (!response.ok) throw new Error('Ne mogu da dobijem broj slobodnih soba');
       const data = await response.json();
       setMaxAvailable(data.availableCount);
-      // Ako je unitsReserved veći od maxAvailable, smanji ga
       setUnitsReserved(prev => Math.min(prev, data.availableCount));
     } catch (e) {
       setMaxAvailable(null);
@@ -97,9 +96,10 @@ useEffect(() => {
   };
   fetchMaxAvailable();
 }, [roomType, startDate, endDate]);
-  // Potvrda rezervacije - šalje i units_reserved
+ 
   const handleConfirmReservation1 = async () => {
     try {
+      let  placeno = false;
       if (!room?.id || !startDate || !endDate || !userData.firstName || !userData.email) {
         throw new Error('Nedostaju obavezni podaci za rezervaciju');
       }
@@ -109,7 +109,26 @@ useEffect(() => {
       if (maxAvailable !== null && unitsReserved > maxAvailable) {
         throw new Error('Nema dovoljno slobodnih soba za izabrani period');
       }
-      // Prava lokalna vrednost datuma (YYYY-MM-DD) bez pomeranja zbog vremenske zone
+      
+      if (paymentOption === 'odmah') {
+        // Validacija kartice
+        const { cardNumber, expiryDate, cvv } = cardData;
+        if (!cardNumber.match(/^\d{16}$/)) {
+          setCardError('Broj kartice mora imati 16 cifara');
+          return;
+        }
+        if (!expiryDate.match(/^(0[1-9]|1[0-2])\/(\d{2})$/)) {
+          setCardError('Datum isteka mora biti u formatu MM/YY');
+          return;
+        }
+        if (!cvv.match(/^\d{3}$/)) {
+          setCardError('CVV mora imati 3 cifre');
+          return;
+        }
+        setCardError('');
+        placeno = true;
+        
+      }
       const getLocalDateString = (date) => {
         if (!(date instanceof Date)) return '';
         const year = date.getFullYear();
@@ -129,7 +148,9 @@ useEffect(() => {
           adults,
           children,
           guest_info: userData,
-          units_reserved: unitsReserved
+          units_reserved: unitsReserved,
+          placeno : placeno,
+          ...(placeno ? { payment: cardData } : {})
         })
       });
       const data = await response.json();
@@ -144,7 +165,6 @@ useEffect(() => {
     }
   };
   
- // Promenite dependency u room.type
   if (!room) {
     return (
       <div>
@@ -173,22 +193,21 @@ useEffect(() => {
     setFormVisible(false);
   };
 
-  // Funkcija za promenu trenutnog koraka na klik kružića
+ 
   const handleStepClick = (step) => {
     setCurrentStep(step);
   };
-  // Proverava da li je bilo koji dan u opsegu potpuno rezervisan
+ 
   const validateDates = (start, end) => {
     if (start && end && new Date(start) > new Date(end)) {
       setError("Datum početka ne može biti veći od datuma kraja.");
       return;
     }
-    // Proveri da li je bilo koji dan u opsegu potpuno rezervisan (uključujući i poslednji dan)
+  
     if (start && end && unitsPerDay) {
       let d = new Date(start);
       const endD = new Date(end);
       let foundFullyBooked = false;
-      // Proverava dane od start (uključivo) do end (uključivo)
       while (d <= endD) {
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -206,17 +225,13 @@ useEffect(() => {
         return;
       }
     }
-    setError(""); // Resetuj grešku ako su datumi ispravni
+    setError(""); 
   };
   const calculateTotalPrice = () => {
     if (!startDate || !endDate) return 0;
-    // Izračunavanje broja dana
     const timeDiff = endDate.getTime() - startDate.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 da uključi i početni dan
-    // Cena po osobi po danu
-    // Ako room ima cenu, koristi je, inače fallback
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; 
     const pricePerNight = room?.price || 50;
-    // Ukupna cena = broj soba * cena po noći * broj noći
     return unitsReserved * pricePerNight * daysDiff;
   };
 
@@ -228,19 +243,6 @@ useEffect(() => {
 
   return (
     <div className={styles.reservationContainer}>
-      {/* <pre style={{fontSize:10, color:'red', background:'#fff', maxHeight:120, overflow:'auto'}}>
-        {JSON.stringify(unitsPerDay, null, 2)}
-      </pre> */}
-      {/*
-      <div style={{fontSize:10, color:'blue', background:'#fff', maxHeight:120, overflow:'auto'}}>
-        <b>roomType:</b> {roomType}<br/>
-        <b>room.id:</b> {room?.id} <b>room.room_id:</b> {room?.room_id} <b>room.room_type:</b> {room?.room_type}<br/>
-        <b>startDate:</b> {startDate && startDate.toISOString()}<br/>
-        <b>endDate:</b> {endDate && endDate.toISOString()}<br/>
-        <b>maxAvailable:</b> {String(maxAvailable)}<br/>
-        <b>unitsReserved:</b> {String(unitsReserved)}
-      </div>
-      */}
     <div className={styles.heroSection}>
       <h1>Rezervacija</h1>
     </div>
@@ -339,7 +341,6 @@ useEffect(() => {
                 value={startDate}
                 onChange={(date) => {
                   if (date instanceof Date && !isNaN(date)) {
-                    // Uvek koristi samo datum bez vremena
                     const onlyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                     setStartDate(onlyDate);
                     validateDates(onlyDate, endDate);
@@ -374,7 +375,6 @@ useEffect(() => {
                 value={endDate}
                 onChange={(date) => {
                   if (date instanceof Date && !isNaN(date)) {
-                    // Uvek koristi samo datum bez vremena
                     const onlyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                     setEndDate(onlyDate);
                     validateDates(startDate, onlyDate);
@@ -601,6 +601,8 @@ useEffect(() => {
               fullWidth
               variant="outlined"
               placeholder="Unesite broj kartice"
+              value={cardData.cardNumber}
+              onChange={e => setCardData({ ...cardData, cardNumber: e.target.value.replace(/\D/g, '') })}
             />
           </div>
           <div className={styles.formGroup}>
@@ -609,7 +611,9 @@ useEffect(() => {
               id="expiryDate"
               fullWidth
               variant="outlined"
-              placeholder="MM/GG"
+              placeholder="MM/YY"
+              value={cardData.expiryDate}
+              onChange={e => setCardData({ ...cardData, expiryDate: e.target.value })}
             />
           </div>
           <div className={styles.formGroup}>
@@ -620,8 +624,11 @@ useEffect(() => {
               variant="outlined"
               type="password"
               placeholder="Unesite CVV kod"
+              value={cardData.cvv}
+              onChange={e => setCardData({ ...cardData, cvv: e.target.value.replace(/\D/g, '') })}
             />
           </div>
+          {cardError && <div style={{ color: 'red', marginTop: 8 }}>{cardError}</div>}
         </div>
       )}
     </div>
@@ -644,17 +651,6 @@ useEffect(() => {
   {currentStep < 3 && (
     <Tooltip title={error || 'Unesite ispravne datume'}>
       <span className={styles.equalButton}>
-       {/*<Button
-          className={`${styles.equalButton} ${styles.submitButton}`}
-          variant="contained"
-          color="primary"
-          type="submit"
-          onClick={handleNextStep}
-          disabled={!startDate || !endDate || !!error}
-          fullWidth
-        >
-          Sledeći korak
-        </Button>*/}
         <Button
           className={`${styles.equalButton} ${styles.submitButton} ${
           (!startDate || !endDate || new Date(startDate) > new Date(endDate)) ? styles.disabledNextButton : ''

@@ -314,7 +314,7 @@ app.get('/api/reservations/:roomType/units-per-day', async (req, res) => {
 app.post('/api/reservations', async (req, res) => {
   console.log('📥 Primljeni podaci:', req.body);
 
-  const { room_id, start_date, end_date, adults, children, guest_info, units_reserved } = req.body;
+  const { room_id, start_date, end_date, adults, children, guest_info, units_reserved,placeno } = req.body;
 
   // ✅ Validacija osnovnih polja
   if (!room_id || !start_date || !end_date || !adults || !guest_info || !units_reserved) {
@@ -383,8 +383,8 @@ app.post('/api/reservations', async (req, res) => {
     // UVEK upisuj stringove u formatu YYYY-MM-DD
     const result = await pool.query(
       `INSERT INTO reservations 
-       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone, units_reserved)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       (room_id, start_date, end_date, adults, children, total_price, status, guest_name, guest_email, guest_phone, units_reserved,placeno)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
         room_id,
@@ -397,9 +397,11 @@ app.post('/api/reservations', async (req, res) => {
         `${guest_info.firstName} ${guest_info.lastName}`,
         guest_info.email,
         guest_info.phone,
-        units_reserved
+        units_reserved,
+        placeno || false    
       ]
     );
+    console.log('Insert result:', result.rows[0]);
 
     console.log('✅ Uspešno sačuvana rezervacija:', result.rows[0]);
     res.status(201).json(result.rows[0]);
@@ -477,15 +479,7 @@ app.post("/api/rooms", async (req, res) => {
     res.status(500).json({ error: "Greška prilikom dodavanja sobe", details: error.message, stack: error.stack });
   }
 });
-/*
-app.get("/api/rooms", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM rooms");
-    res.status(200).json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: "Greška pri učitavanju soba" });
-  }
-});*/
+
 
 app.get("/api/rooms", async (req, res) => {
   try {

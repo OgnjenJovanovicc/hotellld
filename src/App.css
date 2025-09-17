@@ -409,6 +409,30 @@ body {
   color: var(--accent);
 }
 
+.nav-link:active {
+  transform: translateY(1px);
+}
+
+/* Animacija klika na link */
+.nav-link.clicked {
+  animation: clickAnimation 0.5s ease;
+}
+
+@keyframes clickAnimation {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    transform: scale(0.95);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    transform: scale(1);
+  }
+}
+
 /* Hero sekcija */
 .hero-section {
   height: 100vh;
@@ -502,21 +526,29 @@ body {
   transform: scale(1.2);
 }
 
-/* Animacija za fade-in */
-.fade-in {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeIn 1s ease-out forwards;
+/* Loader za inicijalno učitavanje - odmah vidljiv, bez fade-in kašnjenja */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #cba06a 0%, #b88b5c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
 }
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.loader-svg {
+  width: 90px;
+  height: 90px;
+  animation: leafPulse 1.5s infinite ease-in-out;
 }
-
-
+@keyframes leafPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
 
 /* Sadržaj ispod hero sekcije */
 .content {
@@ -1049,4 +1081,28 @@ section h2 {
 .edit-icon:hover, .delete-icon:hover {
   transform: scale(1.1);
   background: rgba(255, 255, 255, 1);
+}
+
+/* Loader za inicijalno učitavanje */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #cba06a 0%, #b88b5c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+}
+.loader-svg {
+  width: 90px;
+  height: 90px;
+  animation: leafPulse 1.5s infinite ease-in-out;
+}
+@keyframes leafPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
 }

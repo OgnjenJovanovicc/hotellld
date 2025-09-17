@@ -304,3 +304,18 @@ background-repeat: repeat;
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.location-badge {
+  display: inline-block;
+  background: #e11d48;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 4px 14px;
+  border-radius: 16px;
+  margin-left: 10px;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(225,29,72,0.10);
+  vertical-align: middle;
+}

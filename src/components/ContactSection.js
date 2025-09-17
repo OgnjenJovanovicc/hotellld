@@ -19,7 +19,6 @@ const ContactSection = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Ukloni grešku kada korisnik počne da kuca
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: false }));
     }
@@ -134,7 +133,7 @@ const ContactSection = () => {
             <ul>
               <li>📞 <a href="tel:+381123456789">+381 12 345 6789</a></li>
               <li>✉️ <a href="mailto:ognjenjov02@gmail.com">ognjenjov02@gmail.com</a></li>
-              <li>📍 Adresa: Bulevar Kralja Aleksandra 123, Beograd</li>
+              <li><span style={{ color: '#e11d48', fontSize: '1.3em', marginRight: 6 }}>📍</span> Jovanovc, 94A, Tuđin</li>
               <li>🕒 Radno vreme: 24/7</li>
             </ul>
           </div>
@@ -167,7 +166,7 @@ const ContactSection = () => {
   onClick={() => setMapActive(true)}
 >
         <iframe 
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2830.347434497038!2d20.4572153155364!3d44.8166299790987!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x475a7aa3d7b53fbd%3A0x1db8645cf2177ee4!2sBulevar%20kralja%20Aleksandra%2C%20Beograd!5e0!3m2!1sen!2srs!4v1620000000000!5m2!1sen!2srs" 
+          src="https://www.google.com/maps?q=Jovanovc+94A+Tuđin&output=embed" 
           width="100%" 
           height="300" 
           style={{ border: 0 }} 

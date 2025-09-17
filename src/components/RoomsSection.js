@@ -14,7 +14,6 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
 
   React.useEffect(() => {
     if (!user) {
-      // Modal i forma su sada u App.js
     }
   }, [user]);
 

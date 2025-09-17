@@ -11,7 +11,7 @@ const RoomCard = ({ room, onClick, user, onDelete, onEdit }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onClick(room)}
-      style={{ position: 'relative' }} // Dodato za sigurnost
+      style={{ position: 'relative' }} 
     >
       <img src={room.img} alt={room.title} />
       <p>{room.title}</p>
@@ -26,7 +26,7 @@ const RoomCard = ({ room, onClick, user, onDelete, onEdit }) => {
             position: 'absolute',
             top: '10px',
             right: '10px',
-            background: 'red', // Privremeno za testiranje vidljivosti
+            background: 'red', 
             zIndex: 100,
           }}
         >
