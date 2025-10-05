@@ -146,7 +146,7 @@ const ContactSection = () => {
             </details>
             <details>
               <summary>Da li je moguća online uplata?</summary>
-              <p>Da, podržavamo kreditne kartice i PayPal.</p>
+              <p>Da, podržavamo kreditne kartice.</p>
             </details>
           </div>
 

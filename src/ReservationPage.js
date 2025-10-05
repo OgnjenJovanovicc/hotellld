@@ -64,7 +64,6 @@ useEffect(() => {
   if (!typeForFetch) return;
   const fetchUnitsPerDay = async () => {
     try {
-    
       const today = new Date();
       const from = today.toISOString().split('T')[0];
       const toDate = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
@@ -638,7 +637,7 @@ useEffect(() => {
 
       {/* Dugmad za navigaciju */}
       <div className={styles.buttonRow}>
-  {currentStep > 1 && currentStep < 3 && (
+  {currentStep > 1 && currentStep <= 3 && (
     <Button
       className={styles.equalButton}
       variant="outlined"

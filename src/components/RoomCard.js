@@ -16,7 +16,7 @@ const RoomCard = ({ room, onClick, user, onDelete, onEdit }) => {
       <img src={room.img} alt={room.title} />
       <p>{room.title}</p>
       <div className="overlay">
-        <button className="details-button">Detaljniji opis</button>
+      <button className="details-button">Detaljniji opis</button>
       </div>
       
       {user && user.role === 'admin' && hovered && (
@@ -61,3 +61,5 @@ const RoomCard = ({ room, onClick, user, onDelete, onEdit }) => {
 };
 
 export default RoomCard;
+
+

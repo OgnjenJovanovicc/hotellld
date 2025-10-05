@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode, onEditRoomSubmit }) => {
   // Ako dobijamo formValues i onFormChange iz propsa, koristimo ih, inače koristimo lokalni state (radi kompatibilnosti)
@@ -21,7 +22,6 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
     total_units: ""
   });
 
-  // Sync local state sa propsima ako se koristi controlled
   useEffect(() => {
     if (isControlled) return;
     setLocalState({

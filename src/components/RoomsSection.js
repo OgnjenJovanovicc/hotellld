@@ -1,7 +1,7 @@
 import React from 'react';
 import RoomCard from './RoomCard';
 
-const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, onReserve, onDeleteRoom, onEditRoom }) => {
+const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, onReserve, onDeleteRoom, onEditRoom,onAddRoom }) => {
   const handleScrollToRoomDetails = () => {  
       detailsRef.current.scrollIntoView({ behavior: 'smooth' });
   };
@@ -49,8 +49,10 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
             room={room}
             user={user}
             onClick={() => handleDetails(room)}
+            onAddRoom={() => {onAddRoom()}}
             onDelete={onDeleteRoom}
             onEdit={onEditRoom}
+           // setShowAddRoomForm={setShowAddRoomForm}
           />
         ))}
       </div>

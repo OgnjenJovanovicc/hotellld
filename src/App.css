@@ -500,7 +500,6 @@ body {
   transform: scale(1.1);
 }
 
-/* Slider tačkice */
 .dots {
   position: absolute;
   bottom: 20px;
@@ -560,9 +559,9 @@ body {
 .about-section { 
     background:
     linear-gradient(#f0f0f0, #eeeeee),
-    url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
+  url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
   background-repeat: repeat;
-    border-radius: 10px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   gap: 50px;
@@ -574,24 +573,24 @@ body {
 
 .about-part {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Dve kolone: tekst i slika */
-  align-items: center; /* Poravnava sadržaj vertikalno */
-  gap: 40px; /* Razmak između kolona */
-  box-sizing: border-box; /* Uključuje padding u širinu elementa */
-  max-width: 100%; /* Ograničena širina sekcije */
-  margin: 0 auto; /* Centriranje sekcije */
+  grid-template-columns: 1fr 1fr; 
+  align-items: center; 
+  gap: 40px; 
+  box-sizing: border-box; 
+  max-width: 100%; 
+  margin: 0 auto; 
 }
 
 .about-part.reverse {
-  grid-template-columns: 1fr 1fr; /* Obrnut redosled */
-  gap: 70px; /* Povećan razmak između kolona (teksta i slike) */
-  max-width: 100%; /* Ograničena širina sekcije */
+  grid-template-columns: 1fr 1fr; 
+  gap: 70px; 
+  max-width: 100%; 
   margin: 0 auto;
 }
 
 .about-part.reverse .text {
-  order: 2; /* Tekst dolazi drugi */
-  margin-right:0px; /* Dodajte marginu desno na tekst za još veći razmak od slike */
+  order: 2; 
+  margin-right:0px; 
 
 }
 
@@ -616,31 +615,31 @@ body {
 
 .about-part .image {
   display: flex;
-  justify-content: center; /* Centriranje slike unutar kontejnera */
-  align-items: center; /* Vertikalno poravnanje slike */
-  height: 400px; /* Možete promeniti ovu visinu prema želji, ali mora biti ista u obe sekcije */
+  justify-content: center; 
+  align-items: center; 
+  height: 400px; 
 }
 
 .about-part.reverse .image {
-  order: 1; /* Slika dolazi prva */
+  order: 1; 
 }
 .about-part.reverse .image img {
-  height: 400px;  /* Ova visina mora biti ista kao u osnovnoj sekciji */
+  height: 400px;  
   width: 100%;
-  object-fit: cover; /* Osigurava da slika popuni prostor, ali zadrži proporcije */
+  object-fit: cover; 
 }
 
 .about-part .image img {
   width: 100%;
- height: 400px; /* Postavljanje iste visine za slike (možete promeniti prema želji) */
+ height: 400px; 
   object-fit: cover;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .about-section .text {
   display: flex;
-  flex-direction: column; /* Raspored unutar teksta */
-  justify-content: center; /* Poravnanje teksta po vertikali */
+  flex-direction: column; 
+  justify-content: center; 
 }
 
 .about-section .text h2 {
@@ -656,12 +655,12 @@ body {
 }
 
 .about-section .image {
-  text-align: center; /* Centriranje slike horizontalno */
+  text-align: center; 
 }
 
 .about-section .image img {
-  max-width: 100%; /* Održavanje proporcija */
-  height: auto; /* Automatsko prilagođavanje visine */
+  max-width: 100%;
+  height: auto; 
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -810,7 +809,7 @@ section h2 {
   align-items: center;
   margin: 30px auto;
   padding: 20px;
-  max-width: 1700px;
+  max-width: 1500px;
   background: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -818,8 +817,8 @@ section h2 {
 }
 
 .room-details img {
-  width: 600px; /* Fiksirana širina */
-  height: 400px; /* Fiksirana visina */
+  width: 350px; /* Fiksirana širina */
+  height: 350px; /* Fiksirana visina */
   object-fit: cover; /* Održava proporcije slike */
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -1037,10 +1036,11 @@ section h2 {
   display: flex;
   justify-content: center;
   margin: 20px 0;
+  margin-bottom: 50px;
 }
 
 .add-room-button {
-  background-color: #16a34a;
+  background-color: #1e40af;
   color: white;
   font-weight: 600;
   padding: 10px 20px;
@@ -1051,14 +1051,15 @@ section h2 {
   transition: background-color 0.3s ease;
 }
 
+
 .add-room-button:hover {
-  background-color: #15803d;
+  background-color: rgb(10, 26, 90);
 }
 .edit-icon {
   position: absolute;
   font-size: 1.55rem;
   top: 10px;
-  right: 300px;
+  right: 205px;
   background: rgba(255, 255, 255, 0.8);
   padding: 8px;
   border-radius: 50%;
