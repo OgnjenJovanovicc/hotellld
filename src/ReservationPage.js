@@ -14,7 +14,7 @@ import {loadStripe} from '@stripe/stripe-js';
 import {Elements, CardElement, useStripe, useElements} from '@stripe/react-stripe-js';
 
 
-const stripePromise = loadStripe('pk_test_51SFD4CFHVfoABKAud7X1pccLZH7UvVLJ7Guj9ml2yoaTZGM6ipmzx7ZAmGNCYAMqML61iLbzV3BfZ07Hzu4lc5cT00yQ6g6WJt'); // zameni sa tvojim Stripe publishable key
+const stripePromise = loadStripe('pk_test_51SFD4CFHVfoABKAud7X1pccLZH7UvVLJ7Guj9ml2yoaTZGM6ipmzx7ZAmGNCYAMqML61iLbzV3BfZ07Hzu4lc5cT00yQ6g6WJt'); 
 
 function StripePaymentForm({amount, reservationData, onSuccess, onError}) {
   const stripe = useStripe();
