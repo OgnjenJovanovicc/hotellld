@@ -37,7 +37,6 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginForm, setIsLoginForm] = useState(true);
   const [user, setUser] = useState(() => {
-   
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
@@ -98,7 +97,6 @@ function App() {
           role: response.data.user.role,
         };
         setUser(newUser); 
-        // Sačuvaj korisnika u localStorage
         localStorage.setItem("user", JSON.stringify(newUser));
         setIsModalOpen(false); 
         toast.success("Uspešno prijavljen korisnik!");
@@ -111,18 +109,19 @@ function App() {
   
   const handleLogout = () => {
     localStorage.removeItem("authToken");
-    localStorage.removeItem("user"); // Ukloni korisnika iz localStorage
+    localStorage.removeItem("user"); 
     setUser(null);
     toast.info("Uspešno ste se odjavili.");
   };
 
   useEffect(() => {
     AOS.init({ duration: 1000,once: false});
+
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) =>
         prevIndex === backgroundImages.length - 1 ? 0 : prevIndex + 1
       );
-    }, 5000); // Menjanje slajdova svakih 5 sekundi
+    }, 5000); 
 
     return () => {clearInterval(interval);
     }; 
@@ -171,7 +170,7 @@ useEffect(() => {
 
   const [allRoomsBackup, setAllRoomsBackup] = useState([]);
 
-
+/*
   useEffect(() => {
     axios.get("http://localhost:5000/api/rooms") 
       .then(response => {
@@ -189,7 +188,7 @@ useEffect(() => {
       .catch(error => {
         console.error("Greška pri učitavanju soba:", error);
       });
-  }, []);
+  }, []);*/
 
   useEffect(() => {
     if (filters.startDate && filters.endDate) {
@@ -297,6 +296,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
   const handleAdminRoomChange = useCallback((field, value) => {
     setAdminRoomForm(prev => ({ ...prev, [field]: value }));
   }, []);
+
   const handleAdminRoomClose = useCallback(() => {
     setShowAddRoomForm(false);
     setAdminRoomForm(initialFormState);
@@ -358,9 +358,8 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
   };
 
   const [showFilterModal, setShowFilterModal] = useState(false);
-  // ...existing code...
+ 
 
-  // Ikone za pogodnosti
   const amenityOptions = [
     { label: 'Wi-Fi', icon: '📶', tooltip: 'Bežični internet' },
     { label: 'Privatno kupatilo', icon: '🚿', tooltip: 'Sopstveno kupatilo' },
@@ -382,7 +381,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
     }
   };
 
-  // Izmeni reset filtera da vraca sve sobe
+
   const handleFilterReset = () => {
     setFilters({ maxPrice: maxRoomPrice, capacity: '', startDate: '', endDate: '', amenities: [], rating: '' });
     setAllRooms(allRoomsBackup);
@@ -430,7 +429,6 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
 
   const filteredRooms = filterRooms(allRooms);
 
-  // Funkcija za promenu oba klizača
   const handlePriceRangeChangeOld = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => {
@@ -438,7 +436,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
       if (name === 'maxPrice') {
         max = Math.max(Number(value), minRoomPrice + 1);
       }
-      // Ograniči opseg
+
       max = Math.min(maxRoomPrice, Math.max(max, minRoomPrice + 1));
       return { ...prev, maxPrice: max };
     });
@@ -549,6 +547,13 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
               </aside>
               {/* Mreža soba */}
               <div style={{ flex: 1, minWidth: 0 }}>
+                            {user?.role === 'admin' && (
+                <div className="admin-room-button-wrapper">
+                  <button className="add-room-button" onClick={() => setShowAddRoomForm(true)}>
+                    ➕ Dodaj novu sobu
+                  </button>
+                </div>
+              )}
                 <RoomsSection className="rooms-section fade-in"
                   rooms={filteredRooms}
                   handleDetails={handleDetails}
@@ -572,14 +577,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
             </div>
             <ContactSection className="fade-in" />
           </main>
-              {/* MODAL ZA DODAVANJE SOBE */}
-              {user?.role === 'admin' && (
-                <div className="admin-room-button-wrapper">
-                  <button className="add-room-button" onClick={() => setShowAddRoomForm(true)}>
-                    ➕ Dodaj novu sobu
-                  </button>
-                </div>
-              )}
+
               {showAddRoomForm && (
                 <div style={{
                   position: "fixed",

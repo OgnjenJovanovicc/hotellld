@@ -11,7 +11,7 @@
   color: white;
   text-align: center;
   padding: 30px 0;
-  margin-bottom: 0; /* umesto 20px */
+  margin-bottom: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
   
 }
@@ -36,7 +36,7 @@
   min-height: 500px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   flex-wrap: nowrap;
-  overflow: hidden; /* Sprečava izlivanje */
+  overflow: hidden; 
 }
 .imageBlurBackground {
     width: 650px;
@@ -119,8 +119,8 @@
 .buttonGroup {
   display: flex;
   justify-content: center;
-  gap: 13px; /* razmak između dugmadi */
-  flex-wrap: wrap; /* da se ne prelamaju ružno na manjim ekranima */
+  gap: 13px;
+  flex-wrap: wrap;
   margin-top: 20px;
   padding-top: 10px;
   color:#ffc107;
@@ -141,8 +141,8 @@
   border-radius: 15px;
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.3s ease;
-  align-self: flex-start; /* Ovo će sprečiti širenje */
-  margin-top: 15px; /* Dodajemo malo prostora */
+  align-self: flex-start; 
+  margin-top: 15px; 
 }
 
 .roomInfo button:hover {
@@ -173,7 +173,6 @@
   }
 }
 
-  /* Dugmadi */
   .buttons button {
     background-color: #f0c040;
     border: none;
@@ -204,8 +203,8 @@
       padding-right:30px;
   }
   .roomText.expanded {
-    overflow-y: auto; /* Omogućava scroll kada je prošireno */
-    max-height: 400px; /* Ograničava maksimalnu visinu */
+    overflow-y: auto; 
+    max-height: 400px; 
   }
   
   .roomText.expanded::-webkit-scrollbar {
@@ -221,20 +220,19 @@
     border-radius: 4px;
   }
   .scrollText {
-    max-height: 300px; /* Početna visina pre klika */
+    max-height: 300px;
   }
 
  
   .roomDescription {
-    max-height: 180px; /* Ili koliko želiš da ograničiš vidljivu visinu */
+    max-height: 180px; 
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right:10px; /* Da scrollbar ne seče tekst */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #888 transparent; /* Firefox */
+    padding-right:10px; 
+    scrollbar-width: thin; 
+    scrollbar-color: #888 transparent; 
   }
   
-  /* Chrome, Edge, Safari scroll stil */
   .roomDescription::-webkit-scrollbar {
     width: 6px;
   }
@@ -363,7 +361,6 @@
   }
   
   
-  /* Stil za labelu i ikonicu kalendara */
   .dateLabel {
     font-size: 16px;
     color: #333;
@@ -386,9 +383,9 @@
   }
 
 .modalContent {
-  max-width: 100%; /* Ograničava širinu forme na 90% ekrana */
-  max-height: 90vh; /* Sprečava da modal izađe iz okvira ekrana */
-  overflow-y: auto; /* Omogućava vertikalno skrolovanje */
+  max-width: 100%; 
+  max-height: 90vh; 
+  overflow-y: auto;
   padding: 20px;
   background-color: white;
   border-radius: 10px;
@@ -409,29 +406,29 @@
   z-index: 1000;
 }
 
-/* Form Group */
+
 .formTwoColumns {
   display: grid;
-  gap: 20px; /* Razmak između kolona */
+  gap: 20px; 
   flex-wrap: wrap;
   margin-bottom: 20px;
   grid-template-columns: 1fr 1fr
 }
 
 .column {
-  flex: 1; /* Sve kolone dele prostor ravnomerno */
-  min-width: 300px; /* Minimalna širina kolone */
-  max-width: 50%; /* Maksimalna širina kolone */
+  flex: 1; 
+  min-width: 300px; 
+  max-width: 50%; 
 }
 
 .formGroup {
   display: flex;
-  flex-direction: column; /* Labele i inputi vertikalno */
+  flex-direction: column; 
   margin-bottom: 15px; 
 }
 .formTwoColumns .formGroup {
   display: flex;
-  flex-direction: column; /* Labele i inputi vertikalno */
+  flex-direction: column;
   padding-left: 15px;
 }
 
@@ -450,7 +447,6 @@
   box-sizing: border-box;
 }
 
-/* Button Group */
 .buttonGroup {
   border-radius: 8px;
   padding: 10px 20px;
@@ -472,7 +468,7 @@
 }
 
 .cancelButton {
-  background-color: #f44336 !important; /* crvena */
+  background-color: #f44336 !important; 
   color: white !important;
   border: none !important;
 }
@@ -512,18 +508,18 @@ border: none !important;
   color: #333;
 }
 .formContainer {
-  width: 90%; /* Koristi 90% dostupne širine na manjim ekranima */
-  max-width: 700px; /* Maksimalna širina forme */
-  margin: 0 auto; /* Centriraj formu horizontalno */
-  padding: 20px; /* Dodaj unutrašnje margine */
-  background-color: #f9f9f9; /* Svetla pozadina */
-  border-radius: 8px; /* Zaobljeni uglovi */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Blaga senka */
+  width: 90%; 
+  max-width: 700px; 
+  margin: 0 auto; 
+  padding: 20px; 
+  background-color: #f9f9f9; 
+  border-radius: 8px; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
 }
 
 .buttonGroup button, 
 .buttonGroup a {
-  height: 45px; /* Fiksna visina */
+  height: 45px; 
   padding: 14px 28px;
   font-size: 20px !important;
   font-weight: 650;
@@ -571,7 +567,6 @@ border: none !important;
   width: 150px;
 }
 
-/* Ikonica kalendara */
 .inputWithIcon {
   position: relative;
   display: flex;
@@ -630,7 +625,7 @@ border: none !important;
 
 .totalPrice strong {
   font-size: 1.8rem;
-  color: #ffc107; /* Žuta boja za istaknute cene */
+  color: #ffc107; 
   margin-left: 5px;
 }
 
@@ -654,20 +649,19 @@ border: none !important;
   position: absolute;
   left: 10px;
   color: #777;
-  font-size: 1.5rem; /* Veća ikonica */
+  font-size: 1.5rem; 
 }
 
 .datePickerInput {
-  width: 100%; /* Maksimalna širina */
-  max-width: 800px; /* Produženo polje za unos */
-  padding: 0.5rem 1rem 0.5rem 2.5rem; /* Ostavlja prostor za ikonicu */
+  width: 100%; 
+  max-width: 800px; 
+  padding: 0.5rem 1rem 0.5rem 2.5rem; 
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
 }
 
-/* Stilovi za brojač odraslih i dece */
 .counterInput {
   display: flex;
   align-items: center;
@@ -692,7 +686,7 @@ border: none !important;
 }
 
 .counterButtonRed:hover {
-  background: #d32f2f; /* Tamnija crvena za hover */
+  background: #d32f2f; 
 }
 
 .counterInput span {
@@ -740,7 +734,7 @@ border: none !important;
 }
 
 .step.completed {
-  background-color: #4caf50; /* Zelena za završene korake */
+  background-color: #4caf50; 
 }
 
 .step:nth-child(2) {

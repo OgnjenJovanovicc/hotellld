@@ -1,4 +1,3 @@
-/* Modern filter modal styles (glassmorphism, layout, icons, chips, result count) */
 .filter-modal-overlay {
   position: fixed;
   top: 0;
@@ -140,8 +139,6 @@
   background: #b79422;
 }
 
-/* Price slider modern style (if needed for modal) */
-/* Wrapper for slider and bubble */
 .price-slider-wrapper {
   position: relative;
   width: 100%;
@@ -162,7 +159,7 @@
   z-index: 2;
 }
 
-/* Bubble above slider handle */
+
 .price-slider-bubble {
   position: absolute;
   top: -15px;
@@ -234,7 +231,7 @@
     top: 32px;
   }
 }
-/* Dual-thumb price slider styles */
+
 .price-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -294,7 +291,6 @@
 }
 
 
-/* MODERN VISIBLE TRACK FOR PRICE SLIDER */
 .price-slider::-webkit-slider-runnable-track {
   height: 6px;
   background: linear-gradient(90deg, #d4af37 0%, #f8fafc 100%);
@@ -319,7 +315,7 @@
   display: none;
 }
 
-/* Hide the default track for all browsers */
+
 .price-slider::-webkit-slider-thumb { z-index: 10; }
 .price-slider::-webkit-slider-container { background: transparent; }
 .price-slider::-webkit-slider-runnable-track { background: transparent; }
@@ -328,14 +324,12 @@
 .price-slider::-moz-range-track { background: transparent; }
 .price-slider::-ms-tooltip { display: none; }
 
-/* For Firefox to allow pointer events on overlapping sliders */
 .price-slider {
   pointer-events: auto;
 }
-/* Globalno */
 :root {
-  --accent: #d4af37;          /* Zlatna */
-  --text: #faf8f4;            /* Svetla bež bela */
+  --accent: #d4af37;          
+  --text: #faf8f4;           
   --bg-dark: rgba(10, 10, 10, 0.5);
   --hover: rgba(255, 255, 255, 0.9);
 }
@@ -351,7 +345,6 @@ body {
   text-align: center;
 }
 
-/* Navigacioni bar */
 .navbar {
   position: fixed;
   top: 0;
@@ -413,7 +406,6 @@ body {
   transform: translateY(1px);
 }
 
-/* Animacija klika na link */
 .nav-link.clicked {
   animation: clickAnimation 0.5s ease;
 }
@@ -433,7 +425,6 @@ body {
   }
 }
 
-/* Hero sekcija */
 .hero-section {
   height: 100vh;
   display: flex;
@@ -465,7 +456,6 @@ body {
   text-shadow: 0 2px 10px rgba(0,0,0,0.6);
 }
 
-/* Slider kontrole */
 .slider-controls {
   position: absolute;
   width: 100%;
@@ -500,7 +490,6 @@ body {
   transform: scale(1.1);
 }
 
-/* Slider tačkice */
 .dots {
   position: absolute;
   bottom: 20px;
@@ -526,7 +515,6 @@ body {
   transform: scale(1.2);
 }
 
-/* Loader za inicijalno učitavanje - odmah vidljiv, bez fade-in kašnjenja */
 .loader-overlay {
   position: fixed;
   top: 0;
@@ -550,7 +538,7 @@ body {
   50% { transform: scale(1.15); opacity: 0.7; }
 }
 
-/* Sadržaj ispod hero sekcije */
+
 .content {
   padding: 20px;
   text-align: left;
@@ -560,9 +548,9 @@ body {
 .about-section { 
     background:
     linear-gradient(#f0f0f0, #eeeeee),
-    url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
+  url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
   background-repeat: repeat;
-    border-radius: 10px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   gap: 50px;
@@ -574,24 +562,24 @@ body {
 
 .about-part {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Dve kolone: tekst i slika */
-  align-items: center; /* Poravnava sadržaj vertikalno */
-  gap: 40px; /* Razmak između kolona */
-  box-sizing: border-box; /* Uključuje padding u širinu elementa */
-  max-width: 100%; /* Ograničena širina sekcije */
-  margin: 0 auto; /* Centriranje sekcije */
+  grid-template-columns: 1fr 1fr; 
+  align-items: center; 
+  gap: 40px; 
+  box-sizing: border-box; 
+  max-width: 100%; 
+  margin: 0 auto; 
 }
 
 .about-part.reverse {
-  grid-template-columns: 1fr 1fr; /* Obrnut redosled */
-  gap: 70px; /* Povećan razmak između kolona (teksta i slike) */
-  max-width: 100%; /* Ograničena širina sekcije */
+  grid-template-columns: 1fr 1fr; 
+  gap: 70px; 
+  max-width: 100%; 
   margin: 0 auto;
 }
 
 .about-part.reverse .text {
-  order: 2; /* Tekst dolazi drugi */
-  margin-right:0px; /* Dodajte marginu desno na tekst za još veći razmak od slike */
+  order: 2; 
+  margin-right:0px; 
 
 }
 
@@ -616,31 +604,31 @@ body {
 
 .about-part .image {
   display: flex;
-  justify-content: center; /* Centriranje slike unutar kontejnera */
-  align-items: center; /* Vertikalno poravnanje slike */
-  height: 400px; /* Možete promeniti ovu visinu prema želji, ali mora biti ista u obe sekcije */
+  justify-content: center; 
+  align-items: center; 
+  height: 400px; 
 }
 
 .about-part.reverse .image {
-  order: 1; /* Slika dolazi prva */
+  order: 1; 
 }
 .about-part.reverse .image img {
-  height: 400px;  /* Ova visina mora biti ista kao u osnovnoj sekciji */
+  height: 400px;  
   width: 100%;
-  object-fit: cover; /* Osigurava da slika popuni prostor, ali zadrži proporcije */
+  object-fit: cover; 
 }
 
 .about-part .image img {
   width: 100%;
- height: 400px; /* Postavljanje iste visine za slike (možete promeniti prema želji) */
+ height: 400px; 
   object-fit: cover;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .about-section .text {
   display: flex;
-  flex-direction: column; /* Raspored unutar teksta */
-  justify-content: center; /* Poravnanje teksta po vertikali */
+  flex-direction: column; 
+  justify-content: center; 
 }
 
 .about-section .text h2 {
@@ -656,24 +644,22 @@ body {
 }
 
 .about-section .image {
-  text-align: center; /* Centriranje slike horizontalno */
+  text-align: center; 
 }
 
 .about-section .image img {
-  max-width: 100%; /* Održavanje proporcija */
-  height: auto; /* Automatsko prilagođavanje visine */
+  max-width: 100%;
+  height: auto; 
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-
-/* Sekcije sadržaja */
 section {
   padding: 50px 20px;
   margin-bottom: 50px;
   border-bottom: 1px solid #2a2727;
-  max-width: 1200px; /* Ograničava širinu linije */
-  margin: 0 auto; /* Centriranje sekcije na stranici */
+  max-width: 1200px; 
+  margin: 0 auto; 
 }
 
 section h2 {
@@ -682,16 +668,14 @@ section h2 {
   color: #101010;
 }
 
-/* Prikazivanje soba */
 .rooms-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Dodajte 3 kolone */
+  grid-template-columns: repeat(3, 1fr); 
   gap: 20px;
   justify-content: center;
   margin: 0 auto;
   padding: 20px;
   max-width: 1200px;
- /* width: 1300px;*/
 }
 
 .room {
@@ -719,7 +703,6 @@ section h2 {
   bottom: 0;
   width: 100%;
   text-align: center;
-  /*background: rgba(0, 0, 0, 0.6);*/
   background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
   color: white !important;
   font-size: 1rem;
@@ -810,7 +793,7 @@ section h2 {
   align-items: center;
   margin: 30px auto;
   padding: 20px;
-  max-width: 1700px;
+  max-width: 1500px;
   background: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -818,9 +801,9 @@ section h2 {
 }
 
 .room-details img {
-  width: 600px; /* Fiksirana širina */
-  height: 400px; /* Fiksirana visina */
-  object-fit: cover; /* Održava proporcije slike */
+  width: 350px; 
+  height: 350px; 
+  object-fit: cover; 
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -980,14 +963,14 @@ section h2 {
 
 
 #contact {
-  text-align: center; /* Centriranje sadržaja */
-  padding: 50px 20px; /* Razmak iznad i ispod sekcije */
-  background: rgba(0, 0, 0, 0.6); /* Ista prozirna pozadina kao navigacioni bar */
-  color: white; /* Bela boja teksta za kontrast */
-  border-radius: 10px; /* Zaobljeni uglovi (opciono) */
-  margin: 20px auto; /* Centriranje sekcije na stranici */
-  max-width: 1200px; /* Maksimalna širina sekcije */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Blagi efekat senke */
+  text-align: center; 
+  padding: 50px 20px; 
+  background: rgba(0, 0, 0, 0.6); 
+  color: white; 
+  border-radius: 10px; 
+  margin: 20px auto; 
+  max-width: 1200px; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
 }
 
 #contact h2 {
@@ -1002,45 +985,46 @@ section h2 {
 
 .button-container {
   display: flex;
-  align-items: center; /* Vertikalno centriranje */
-  gap: 265px; /* Manji razmak između dugmadi */
+  align-items: center; 
+  gap: 265px; 
 }
 
 .reserve-button {
-  background-color: #2563eb !important; /* Svetlo zelena boja */
-  color: white; /* Bela boja teksta */
+  background-color: #2563eb !important; 
+  color: white; 
   border: none;
-  padding: 10px 20px; /* Ispravljen padding za bolje dimenzije */
+  padding: 10px 20px; 
   cursor: pointer;
-  border-radius: 5px; /* Zaobljeni uglovi */
-  font-size: 1rem; /* Optimalna veličina fonta */
+  border-radius: 5px; 
+  font-size: 1rem;
   text-align: center;
 }
 
 .reserve-button:hover {
-  background-color:#1e40af  !important; /* Tamnija zelena boja na hover */
+  background-color:#1e40af  !important; 
 }
 
 .close-button {
-  font-size: 1rem; /* Usklađena veličina fonta sa rezervišite */
-  background: none; /* Bez pozadine */
-  border: none; /* Bez bordera */
-  cursor: pointer; /* Klikabilnost */
-  color: #333; /* Tamno siva boja */
+  font-size: 1rem; 
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  color: #333; 
 }
 
 .close-button:hover {
-  color: #060101; /* Crna boja na hover */
+  color: #060101; 
 }
 
 .admin-room-button-wrapper {
   display: flex;
   justify-content: center;
   margin: 20px 0;
+  margin-bottom: 50px;
 }
 
 .add-room-button {
-  background-color: #16a34a;
+  background-color: #1e40af;
   color: white;
   font-weight: 600;
   padding: 10px 20px;
@@ -1051,14 +1035,15 @@ section h2 {
   transition: background-color 0.3s ease;
 }
 
+
 .add-room-button:hover {
-  background-color: #15803d;
+  background-color: rgb(10, 26, 90);
 }
 .edit-icon {
   position: absolute;
   font-size: 1.55rem;
   top: 10px;
-  right: 300px;
+  right: 205px;
   background: rgba(255, 255, 255, 0.8);
   padding: 8px;
   border-radius: 50%;

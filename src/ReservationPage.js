@@ -10,7 +10,58 @@ import Tooltip from '@mui/material/Tooltip';
 import  {LinearProgress, Box, Typography } from '@mui/material';
 import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {loadStripe} from '@stripe/stripe-js';
+import {Elements, CardElement, useStripe, useElements} from '@stripe/react-stripe-js';
 
+
+const stripePromise = loadStripe('pk_test_51SFD4CFHVfoABKAud7X1pccLZH7UvVLJ7Guj9ml2yoaTZGM6ipmzx7ZAmGNCYAMqML61iLbzV3BfZ07Hzu4lc5cT00yQ6g6WJt'); // zameni sa tvojim Stripe publishable key
+
+function StripePaymentForm({amount, reservationData, onSuccess, onError}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+
+  const handleStripePayment = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/create-payment-intent', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          amount: Math.round(amount * 100),
+          currency: 'eur',
+          reservationData
+        })
+      });
+      const {clientSecret} = await res.json();
+
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+        }
+      });
+
+      if (result.error) {
+        onError(result.error.message);
+      } else if (result.paymentIntent.status === 'succeeded') {
+        onSuccess();
+      }
+    } catch (err) {
+      onError(err.message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleStripePayment}>
+      <CardElement />
+      <Button type="submit" disabled={!stripe || loading}>
+        {loading ? 'Plaćanje...' : 'Plati'}
+      </Button>
+    </form>
+  );
+}
 
 const ReservationPage = () => {
   const location = useLocation();
@@ -46,6 +97,7 @@ const [unitsPerDay, setUnitsPerDay] = useState({});
   const [cardData, setCardData] = useState({ cardNumber: '', expiryDate: '', cvv: '' });
   const [cardError, setCardError] = useState('');
   const roomType = room?.room_type || room?.type;
+  const [showStripe, setShowStripe] = useState(false);
 
 
 const shouldDisableDate = (date) => {
@@ -64,7 +116,6 @@ useEffect(() => {
   if (!typeForFetch) return;
   const fetchUnitsPerDay = async () => {
     try {
-    
       const today = new Date();
       const from = today.toISOString().split('T')[0];
       const toDate = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
@@ -111,23 +162,8 @@ useEffect(() => {
       }
       
       if (paymentOption === 'odmah') {
-        // Validacija kartice
-        const { cardNumber, expiryDate, cvv } = cardData;
-        if (!cardNumber.match(/^\d{16}$/)) {
-          setCardError('Broj kartice mora imati 16 cifara');
-          return;
-        }
-        if (!expiryDate.match(/^(0[1-9]|1[0-2])\/(\d{2})$/)) {
-          setCardError('Datum isteka mora biti u formatu MM/YY');
-          return;
-        }
-        if (!cvv.match(/^\d{3}$/)) {
-          setCardError('CVV mora imati 3 cifre');
-          return;
-        }
-        setCardError('');
-        placeno = true;
-        
+        setShowStripe(true);
+        return;
       }
       const getLocalDateString = (date) => {
         if (!(date instanceof Date)) return '';
@@ -165,6 +201,45 @@ useEffect(() => {
     }
   };
   
+  const handleStripeSuccess = async () => {
+    setShowStripe(false);
+    const getLocalDateString = (date) => {
+      if (!(date instanceof Date)) return '';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    const response = await fetch('http://localhost:5000/api/reservations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        room_id: room.id,
+        start_date: getLocalDateString(startDate),
+        end_date: getLocalDateString(endDate),
+        adults,
+        children,
+        guest_info: userData,
+        units_reserved: unitsReserved,
+        placeno: true
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || 'Došlo je do greške pri čuvanju rezervacije');
+    } else {
+      toast.success(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
+      setFormVisible(false);
+    }
+  };
+
+  const handleStripeError = (msg) => {
+    setShowStripe(false);
+    toast.error(msg);
+  };
+
   if (!room) {
     return (
       <div>
@@ -551,94 +626,71 @@ useEffect(() => {
 
       {/* Korak 3 */}
       {currentStep === 3 && (
-   <div className={styles.formContainer}>
-    <h3>Forma 3: Potvrda rezervacije i realizacija plaćanja</h3>
-    <p>Pregled rezervacije:</p>
-    <ul className={styles.summaryList}>
-      <li><strong>Početak:</strong> {startDate?.toLocaleDateString()}</li>
-      <li><strong>Kraj:</strong> {endDate?.toLocaleDateString()}</li>
-      <li><strong>Broj soba:</strong> {unitsReserved}</li>
-      <li><strong>Odrasli:</strong> {adults}</li>
-      <li><strong>Deca:</strong> {children}</li>
-      <li className={styles.totalPrice}>
-        <strong>UKUPNO:</strong> <span className={styles.priceHighlight}>{totalPrice}€</span>
-      </li>
-    </ul>
+        <div className={styles.formContainer}>
+          <h3>Forma 3: Potvrda rezervacije i realizacija plaćanja</h3>
+          <p>Pregled rezervacije:</p>
+          <ul className={styles.summaryList}>
+            <li><strong>Početak:</strong> {startDate?.toLocaleDateString()}</li>
+            <li><strong>Kraj:</strong> {endDate?.toLocaleDateString()}</li>
+            <li><strong>Broj soba:</strong> {unitsReserved}</li>
+            <li><strong>Odrasli:</strong> {adults}</li>
+            <li><strong>Deca:</strong> {children}</li>
+            <li className={styles.totalPrice}>
+              <strong>UKUPNO:</strong> <span className={styles.priceHighlight}>{totalPrice}€</span>
+            </li>
+          </ul>
 
-    <div className={styles.paymentSection}>
-      <h4>Izaberite način plaćanja:</h4>
-      <div className={styles.radioGroup}>
-        <label>
-          <input
-            type="radio"
-            name="paymentOption"
-            value="odmah"
-            checked={paymentOption === 'odmah'}
-            onChange={() => setPaymentOption('odmah')}
-          />
-          Platiti odmah
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="paymentOption"
-            value="naknadno"
-            checked={paymentOption === 'naknadno'}
-            onChange={() => setPaymentOption('naknadno')}
-          />
-          Platiti naknadno
-        </label>
-      </div>
+          <div className={styles.paymentSection}>
+            <h4>Izaberite način plaćanja:</h4>
+            <div className={styles.radioGroup}>
+              <label>
+                <input
+                  type="radio"
+                  name="paymentOption"
+                  value="odmah"
+                  checked={paymentOption === 'odmah'}
+                  onChange={() => setPaymentOption('odmah')}
+                />
+                Platiti odmah
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="paymentOption"
+                  value="naknadno"
+                  checked={paymentOption === 'naknadno'}
+                  onChange={() => setPaymentOption('naknadno')}
+                />
+                Platiti naknadno
+              </label>
+            </div>
 
-      {/* Ako korisnik odabere "platiti odmah", prikaži dodatne opcije za plaćanje */}
-      {paymentOption === 'odmah' && (
-        <div className={styles.prePaymentForm}>
-          <h4>Detalji za plaćanje unapred:</h4>
-          <div className={styles.formGroup}>
-            <label htmlFor="cardNumber">Broj kartice:</label>
-            <TextField
-              id="cardNumber"
-              fullWidth
-              variant="outlined"
-              placeholder="Unesite broj kartice"
-              value={cardData.cardNumber}
-              onChange={e => setCardData({ ...cardData, cardNumber: e.target.value.replace(/\D/g, '') })}
-            />
+            {/* Prikaz Stripe forme kada je showStripe true */}
+            {paymentOption === 'odmah' && showStripe && (
+              <Elements stripe={stripePromise}>
+                <StripePaymentForm
+                  amount={totalPrice}
+                  reservationData={{
+                    room_id: room.id,
+                    start_date: startDate?.toISOString().split('T')[0],
+                    end_date: endDate?.toISOString().split('T')[0],
+                    adults,
+                    children,
+                    guest_info: userData,
+                    units_reserved: unitsReserved,
+                  }}
+                  onSuccess={handleStripeSuccess}
+                  onError={handleStripeError}
+                />
+              </Elements>
+            )}
           </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="expiryDate">Datum isteka:</label>
-            <TextField
-              id="expiryDate"
-              fullWidth
-              variant="outlined"
-              placeholder="MM/YY"
-              value={cardData.expiryDate}
-              onChange={e => setCardData({ ...cardData, expiryDate: e.target.value })}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="cvv">CVV:</label>
-            <TextField
-              id="cvv"
-              fullWidth
-              variant="outlined"
-              type="password"
-              placeholder="Unesite CVV kod"
-              value={cardData.cvv}
-              onChange={e => setCardData({ ...cardData, cvv: e.target.value.replace(/\D/g, '') })}
-            />
-          </div>
-          {cardError && <div style={{ color: 'red', marginTop: 8 }}>{cardError}</div>}
         </div>
       )}
-    </div>
-  </div>
-)}
-
 
       {/* Dugmad za navigaciju */}
       <div className={styles.buttonRow}>
-  {currentStep > 1 && currentStep < 3 && (
+  {currentStep > 1 && currentStep <= 3 && (
     <Button
       className={styles.equalButton}
       variant="outlined"
