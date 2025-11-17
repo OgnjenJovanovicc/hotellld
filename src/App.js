@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback   } from "react";
 import axios from "axios";
-import { useNavigate,BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useNavigate,BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import { FaEnvelope, FaSignInAlt, FaSignOutAlt  } from "react-icons/fa";
 import Header from './components/Header';
@@ -11,6 +11,7 @@ import AuthModal from './components/AuthModal';
 import ContactSection from './components/ContactSection';
 import AdminRoom from "./AdminRoom";
 import ReservationPage from './ReservationPage';
+import AdminPanel from './components/AdminPanel';
 import { ToastContainer,toast } from 'react-toastify';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -55,13 +56,27 @@ function App() {
 
   const handleRegister = async (event) => {
     event.preventDefault();
+  
     const formData = new FormData(event.target);
+
+     const email= formData.get("email");
+    const emailRegex = /^[\w.-]+@[A-Za-z.-]+\.[A-Za-z]{2,}$/;
+    if(!emailRegex.test(email)) { 
+    toast.error("Unesite ispravnu email format.");
+    return;
+    }
+    const password = formData.get("sifra");
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-={}[\]|:;"'<>,.?/~`]).{8,}$/;
+   if(!passwordRegex.test(password)) {  
+    toast.error("Šifra mora imati najmanje 8 karaktera, uključujući veliko slovo i specijalni karakter.");
+    return;
+  }
     const user = {
       ime: formData.get("ime"),
       prezime: formData.get("prezime"),
       telefon: formData.get("telefon"),
-      email: formData.get("email"),
-      sifra: formData.get("sifra"),
+      email: email,
+      sifra: password,
       role: formData.get("role"),
     };
   
@@ -75,7 +90,7 @@ function App() {
       }
     } catch (error) {
       console.error("Greška prilikom registracije:", error);
-      toast.error("Došlo je do greške prilikom registracije.");
+      toast.error("Došlo je do greške prilikom registracije, roverite uneste podatke!!!.");
     }
   };
 
@@ -681,10 +696,14 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
       />
 
       {/* Stranica za rezervacije */}
+      {/* Line 697 omitted */}
       <Route path="/reservation" element={<ReservationPage />} />
+      <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />} />
     </Routes>
     </>
   );
 }
+
+//export default App;
 
 export default App;

@@ -28,7 +28,17 @@ const Header = ({ user, openModal, handleLogout }) => {
     <nav className="navbar">
       <div className="logo">Hotel Luksuz</div>
       <ul className="nav-links">
-        <li>
+   {user && user.role === 'admin' && (
+  <li>
+    <a 
+      href="/admin" 
+      className="nav-link"
+    >
+      Admin Panel
+    </a>
+  </li>
+)}
+          <li>
           <a 
             href="#about" 
             onClick={(e) => handleLinkClick(e, '#about')}

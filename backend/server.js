@@ -8,10 +8,85 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const port = process.env.PORT || 5000;
-
+const dns=require('dns').promises;
 
 app.use(cors());
 
+// ⚠️ STRIPE WEBHOOK ENDPOINT MORA BITI PRE app.use(express.json())
+// jer webhook zahteva RAW body za verifikaciju potpisa
+app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  console.log('🔔 Webhook primljen na /webhook/stripe');
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const sig = req.headers['stripe-signature'];
+  
+  console.log('Webhook Secret:', endpointSecret ? 'Postoji' : 'NEDOSTAJE!');
+  console.log('Signature:', sig ? 'Postoji' : 'NEDOSTAJE!');
+  
+  let event;
+  try {
+    if (!endpointSecret) {
+      console.error('❌ STRIPE_WEBHOOK_SECRET nije postavljen u .env');
+      return res.status(400).send('Webhook secret not configured');
+    }
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    console.log('✅ Webhook event uspešno konstruisan:', event.type);
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    console.log('💳 Payment Intent uspešan!');
+    const paymentIntent = event.data.object;
+    console.log('Payment Intent ID:', paymentIntent.id);
+    console.log('Amount:', paymentIntent.amount);
+    
+    let reservation = {};
+    try {
+      reservation = JSON.parse(paymentIntent.metadata.reservation || '{}');
+      console.log('Reservation data:', reservation);
+    } catch (e) {
+      console.error('Greška pri parsiranju reservation:', e);
+    }
+    
+    try {
+      // Provjera da li transakcija već postoji (idempotency)
+      const existingTransaction = await pool.query(
+        'SELECT id FROM transactions WHERE payment_intent_id = $1',
+        [paymentIntent.id]
+      );
+      
+      if (existingTransaction.rows.length > 0) {
+        console.log('⚠️ Transakcija već postoji za Payment Intent:', paymentIntent.id);
+        return res.json({ received: true, skipped: true });
+      }
+      
+      const result = await pool.query(
+        `INSERT INTO transactions 
+          (payment_intent_id, amount, currency, status, reservation_data, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())
+         RETURNING *`,
+        [
+          paymentIntent.id,
+          paymentIntent.amount,
+          paymentIntent.currency,
+          paymentIntent.status,
+          JSON.stringify(reservation)
+        ]
+      );
+      console.log('✅ Transakcija uspešno upisana u bazu:', result.rows[0]);
+    } catch (dbErr) {
+      console.error('❌ Greška pri upisu transakcije u bazu:', dbErr.message);
+      console.error('Detalji greške:', dbErr);
+    }
+  } else {
+    console.log('ℹ️ Primljen event tipa:', event.type, '(nije payment_intent.succeeded)');
+  }
+  
+  res.json({ received: true });
+});
+
+// SADA dolazi express.json() nakon webhook endpoint-a
 app.use(express.json());
 
 
@@ -77,6 +152,26 @@ app.get('/api/rooms/available-count', async (req, res) => {
 app.post('/api/users', async (req, res) => {
   const { ime, prezime, telefon, email, sifra, role } = req.body;
 
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-={}[\]|:;"'<>,.?/~`]).{8,}$/;
+  if (!passwordRegex.test(sifra)) {
+    return res.status(400).json({ error: 'Šifra mora imati najmanje 8 karaktera, uključujući veliko slovo i specijalni karakter.' });
+  }
+  const emailRegex =  /^[\w.-]+@[A-Za-z.-]+\.[A-Za-z]{2,}$/;
+
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Neispravan email format.' });
+  }
+
+  const domain=email.split('@')[1];
+  try{
+    const mxRecords=await dns.resolveMx(domain);
+
+    if(!mxRecords || mxRecords.length===0){
+      return res.status(400).json({ error: 'Email domen nema validne MX zapise.' });
+    }
+  }catch(err){
+    return res.status(400).json({ error: 'Email domen ne postoji ili nije dostuoan.' });
+  }
   try {
     const result = await client.query(
       'INSERT INTO users(ime, prezime, telefon, email, sifra, role) VALUES($1, $2, $3, $4, $5, $6) RETURNING *',
@@ -178,6 +273,19 @@ app.get('/api/rooms', async (req, res) => {
     res.status(200).json(roomsWithConsistentStructure);
   } catch (error) {
     res.status(500).json({ error: "Greška pri učitavanju soba" });
+  }
+});
+
+app.get('/api/reservations', async (req, res) => {
+  try{
+    const result=await client.query('SELECT * FROM reservations');
+    if(result.rows.length===0){
+      return res.status(404).json({ error: 'Nema podataka o rezervacijama' });
+    }
+    res.json(result.rows);
+  }catch(err){
+    console.error('Error fetching reservations:', err.stack);
+    res.status(500).json({ error: 'Failed to fetch reservations' });
   }
 });
 
@@ -339,7 +447,10 @@ app.post('/api/reservations', async (req, res) => {
     }*/
 
     // ✅ Izračunavanje ukupne cene
-    const total_price = calculateTotalPrice(start, end, adults, children);
+    // Dohvati cijenu sobe po noci
+    const roomPrice = await pool.query('SELECT price_per_night FROM rooms WHERE room_id = $1', [room_id]);
+    const pricePerNight = roomPrice.rows[0]?.price_per_night || 50;
+    const total_price = calculateTotalPrice(start, end, adults, children, units_reserved, pricePerNight);
 
     // UVEK upisuj stringove u formatu YYYY-MM-DD
     const result = await pool.query(
@@ -557,22 +668,65 @@ app.put("/api/rooms/:room_id", async (req, res) => {
 
 
 // ✅ Funkcija za izračunavanje cene
-function calculateTotalPrice(start, end, adults, children = 0) {
+// Formula: (cijena_sobe_po_noci * broj_soba * broj_dana) + (odrasli * cijena_po_odraslom * broj_dana) + (deca * cijena_po_djetetu * broj_dana)
+function calculateTotalPrice(start, end, adults, children = 0, unitsReserved = 1, roomPricePerNight = 50) {
   const msPerDay = 1000 * 60 * 60 * 24;
   const daysDiff = Math.ceil((end - start) / msPerDay) + 1;
 
-  const pricePerAdultPerDay = 50;
-  const pricePerChildPerDay = 25;
+  const pricePerAdultPerDay = 25;
+  const pricePerChildPerDay = 12.5;
 
-  const totalPrice = daysDiff * (adults * pricePerAdultPerDay + children * pricePerChildPerDay);
+  // Cijena = (cijena_sobe * broj_soba * dani) + (odrasli * cijena * dani) + (deca * cijena * dani)
+  const roomCost = roomPricePerNight * unitsReserved * daysDiff;
+  const adultsCost = adults * pricePerAdultPerDay * daysDiff;
+  const childrenCost = children * pricePerChildPerDay * daysDiff;
+  const totalPrice = roomCost + adultsCost + childrenCost;
 
-  console.log(`💰 Ukupna cena (${daysDiff} dana): ${totalPrice}`);
+  console.log(`💰 Izračun: Sobe(${roomPricePerNight}*${unitsReserved}*${daysDiff}) + Odrasli(${adults}*${pricePerAdultPerDay}*${daysDiff}) + Deca(${children}*${pricePerChildPerDay}*${daysDiff}) = ${totalPrice}€`);
   return totalPrice;
 }
+
+// Endpoint za izračunavanje cijene
+app.post('/api/calculate-price', async (req, res) => {
+  const { start_date, end_date, adults, children, units_reserved, room_id } = req.body;
+  
+  if (!start_date || !end_date || !adults || !units_reserved || !room_id) {
+    return res.status(400).json({ error: 'Nedostaju obavezni parametri' });
+  }
+  
+  try {
+    // Dohvati cijenu sobe
+    const roomResult = await pool.query('SELECT price_per_night FROM rooms WHERE room_id = $1', [room_id]);
+    if (roomResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Soba nije pronađena' });
+    }
+    
+    const pricePerNight = roomResult.rows[0].price_per_night || 50;
+    const start = new Date(start_date + 'T12:00:00');
+    const end = new Date(end_date + 'T12:00:00');
+    
+    const totalPrice = calculateTotalPrice(start, end, adults, children || 0, units_reserved, pricePerNight);
+    
+    res.json({ 
+      totalPrice,
+      breakdown: {
+        roomPrice: pricePerNight,
+        unitsReserved: units_reserved,
+        adults,
+        children: children || 0,
+        days: Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
+      }
+    });
+  } catch (error) {
+    console.error('Greška pri izračunavanju cijene:', error);
+    res.status(500).json({ error: 'Greška pri izračunavanju cijene' });
+  }
+});
 
 // Endpoint za kreiranje Stripe Payment Intent-a
 app.post('/api/create-payment-intent', async (req, res) => {
   const { amount, currency, reservationData } = req.body;
+  console.log('📝 Zahtev za Payment Intent:', { amount, currency, reservationData });
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
@@ -581,49 +735,13 @@ app.post('/api/create-payment-intent', async (req, res) => {
         reservation: JSON.stringify(reservationData)
       }
     });
+    console.log('✅ Payment Intent kreiran:', paymentIntent.id);
+    console.log('Client Secret:', paymentIntent.client_secret);
     res.send({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
-    console.error('Stripe PaymentIntent error:', error);
+    console.error('❌ Stripe PaymentIntent error:', error);
     res.status(500).json({ error: 'Stripe PaymentIntent error', details: error.message });
   }
-});
-
-// Stripe webhook endpoint
-app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  const sig = req.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  if (event.type === 'payment_intent.succeeded') {
-    const paymentIntent = event.data.object;
-    let reservation = {};
-    try {
-      reservation = JSON.parse(paymentIntent.metadata.reservation || '{}');
-    } catch (e) {}
-    try {
-      await pool.query(
-        `INSERT INTO transactions 
-          (payment_intent_id, amount, currency, status, reservation_data, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [
-          paymentIntent.id,
-          paymentIntent.amount,
-          paymentIntent.currency,
-          paymentIntent.status,
-          JSON.stringify(reservation)
-        ]
-      );
-    } catch (dbErr) {
-      console.error('Greška pri upisu transakcije:', dbErr);
-    }
-  }
-  res.json({ received: true });
 });
 
 app.get('/api/admin/transactions', async (req, res) => {

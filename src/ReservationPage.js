@@ -75,9 +75,9 @@ const ReservationPage = () => {
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [adults, setAdults] = useState(1);
-  const [total_price,setTotalPrice]=useState(0);
-const [bookedDates, setBookedDates] = useState([]); 
-const [unitsPerDay, setUnitsPerDay] = useState({}); 
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [bookedDates, setBookedDates] = useState([]);
+  const [unitsPerDay, setUnitsPerDay] = useState({}); 
   const [children, setChildren] = useState(0);
   const [paymentOption, setPaymentOption] = useState('naknadno');
   const [isFormVisible, setFormVisible] = useState(false);
@@ -147,6 +147,45 @@ useEffect(() => {
   };
   fetchMaxAvailable();
 }, [roomType, startDate, endDate]);
+
+// useEffect za izračunavanje cijene - MORA biti prije if (!room) return
+useEffect(() => {
+  const updatePrice = async () => {
+    const calculateTotalPrice = async () => {
+      if (!startDate || !endDate || !room?.id) return 0;
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/calculate-price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            start_date: startDate.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0],
+            adults,
+            children,
+            units_reserved: unitsReserved,
+            room_id: room.id
+          })
+        });
+        
+        if (!response.ok) {
+          console.error('Greška pri izračunavanju cijene');
+          return 0;
+        }
+        
+        const data = await response.json();
+        return Math.round(data.totalPrice * 100) / 100;
+      } catch (error) {
+        console.error('Greška pri upitu cijene:', error);
+        return 0;
+      }
+    };
+    
+    const price = await calculateTotalPrice();
+    setTotalPrice(price);
+  };
+  updatePrice();
+}, [startDate, endDate, adults, children, unitsReserved, room?.id]);
  
   const handleConfirmReservation1 = async () => {
     try {
@@ -302,19 +341,6 @@ useEffect(() => {
     }
     setError(""); 
   };
-  const calculateTotalPrice = () => {
-    if (!startDate || !endDate) return 0;
-    const timeDiff = endDate.getTime() - startDate.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; 
-    const pricePerNight = room?.price || 50;
-    return unitsReserved * pricePerNight * daysDiff;
-  };
-
-  
-  const totalPrice=calculateTotalPrice();
-
-  function Reservation({ room }) {
-   }
 
   return (
     <div className={styles.reservationContainer}>

@@ -546,8 +546,8 @@ body {
 }
 
 .about-section { 
-    background:
-    linear-gradient(#f0f0f0, #eeeeee),
+  background:
+  linear-gradient(#f0f0f0, #eeeeee),
   url('data:image/svg+xml;utf8,<svg opacity="0.03" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><text x="0" y="30" font-family="Arial" font-size="20" fill="%231e40af">Hotel Luksuz</text></svg>');
   background-repeat: repeat;
   border-radius: 10px;
