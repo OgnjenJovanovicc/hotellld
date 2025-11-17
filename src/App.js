@@ -704,6 +704,4 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
   );
 }
 
-//export default App;
-
 export default App;

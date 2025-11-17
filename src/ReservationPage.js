@@ -307,7 +307,6 @@ useEffect(() => {
     setFormVisible(false);
   };
 
- 
   const handleStepClick = (step) => {
     setCurrentStep(step);
   };

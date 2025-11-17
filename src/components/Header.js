@@ -21,7 +21,6 @@ import { FaEnvelope, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
     smoothScroll(targetId);
   };
 
-
 const Header = ({ user, openModal, handleLogout }) => {
 
  return (
