@@ -25,7 +25,10 @@ const Header = ({ user, openModal, handleLogout }) => {
 
  return (
     <nav className="navbar">
-      <div className="logo">Hotel Luksuz</div>
+      <div className="logo">
+        <img src="/assest/logo.webp" alt="Logo" className="brand-icon"  style={{ width: 86, height: 76, marginRight: 10, borderRadius: 6 }} />
+        <span className="hotel-name">Hotel Tišina</span>
+      </div>
       <ul className="nav-links">
    {user && user.role === 'admin' && (
   <li>

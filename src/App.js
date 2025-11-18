@@ -46,10 +46,13 @@ function App() {
   const reservation = './assest/reservation.jpg';
 
   const backgroundImages = [
-  "/assest/slika1.webp",
-  "/assest/slika2.webp",
-  "/assest/slika3.webp",
-  "/assest/hotel.webp"
+  "/assest/slika9.jpg",
+  "/assest/slika4.jpg",
+  "/assest/ognjen.jpg",
+  "/assest/slika6.jpg",
+  "/assest/slika10.jpg",
+  "/assest/slika11.jpg",
+  "/assest/slika7.jpg"
 ];
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
@@ -607,7 +610,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
                   zIndex: 1000
                 }}>
                   <div style={{ position: "relative", maxHeight: 600, maxWidth: 480, width: "100%", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "32px 24px 24px 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <button onClick={handleAdminRoomClose} style={{ position: "absolute", top: 8, right: 8, fontSize: 18, background: "none", border: "none", cursor: "pointer" }}>×</button>
+                    <button onClick={handleAdminRoomClose} style={{ position: "absolute", top: 12, right: 12, fontSize: 32, fontWeight: 300, background: "#f0f0f0", border: "2px solid #e0e0e0", cursor: "pointer", width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#333", transition: "all 0.2s ease" }} onMouseEnter={(e) => { e.target.style.background = "#ff6b6b"; e.target.style.borderColor = "#ff6b6b"; e.target.style.color = "#fff"; }} onMouseLeave={(e) => { e.target.style.background = "#f0f0f0"; e.target.style.borderColor = "#e0e0e0"; e.target.style.color = "#333"; }}>×</button>
                     <AdminRoom
                       formValues={adminRoomForm}
                       onFormChange={handleAdminRoomChange}

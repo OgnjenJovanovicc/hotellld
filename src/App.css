@@ -337,7 +337,7 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: none;
+  background-color: rgba(239, 239, 239, 0.63);
   color: #333;
 }
 
@@ -362,6 +362,16 @@ body {
 }
 
 .navbar .logo {
+  font-size: 2.8rem;
+  font-weight: bold;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar .hotel-name {
   font-size: 2.8rem;
   font-weight: bold;
   font-family: 'Playfair Display', serif;
@@ -437,7 +447,6 @@ body {
   background-position: center;
   overflow: hidden;
 }
-
 
 .hero-section::after {
   content: "";
@@ -556,7 +565,7 @@ body {
   gap: 50px;
   padding: 50px 20px;
   max-width: 1200px;
-  margin: 50px auto;
+  margin: 40px auto;
   border-top: 1px solid #2a2727;
 }
 

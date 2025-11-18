@@ -8,25 +8,28 @@ const AboutSection = ({ images }) => (
       </div>
       <div className="text">
         <h2>O nama</h2>
-        <p>Dobrodošli u naš hotel, savršen spoj luksuza i komfora. Naš hotel nudi
-      prelepe sobe, vrhunsku uslugu i nezaboravne trenutke. Bilo da dolazite na
-      odmor, poslovni put ili porodično okupljanje, obezbedićemo vam prijatan
-      boravak. Vaše zadovoljstvo nam je najvažnije!.Ovo je projekat koji kida koliko ce biti dobar
-      , ovo pisem da vidim da li ce ce naslov pokolopiti sa visinom slike koja stoji
-      u datoj sekciji.Moram jos da pisem jer nemam jos dovoljni teksta koji mi je potreban
-      za porveru, klizim znas!!! Moj otac kaze ovsene pahulje </p>
+        <p>Hotel Tišina predstavlja utočište savremenog čoveka u žurbi, oaza mira 
+          skrivena u naručju prirode. Smešten daleko od gradske buke, ovaj hotel 
+          nudi gostima jedinstvenu priliku da se potpuno odvoje i prepuste blagodetima
+          tišine. Prostrane sobe opremljene su u zemljanim tonovima i prirodnim 
+          materijalima, stvarajući atmosferu topline i jednostavnosti, dok se sa svakog
+          balkona pruža pogled na more i netaknutu prirodu. Ovde je 
+          glavna prednost upravo odsustvo zvuka – samo zvuk talsa koji neprekidno zapljsuk
+          uju obalu plaže. </p>
       </div>
     </div>
     <div className="about-part" data-aos="fade-right">
       <div className="text">
         <h2>Naša misija</h2>
-        <p>Ovaj bices je najmanje od dizanja tegova on je od udranja malem u traktorsku gumu, trcanja, 
-       od milonoa sklokova ne noh vise hiljade i hiljade, klizim znas, tezak sam na knt, imam jake
-       butne misice, moj otac kaze ovsene pahulje to jedu ptice, ja sam nabacio stomak jer sam znao
-       sta me ovde ceka, ja sam ceo yivot u treningu, ispod ovog sala i vode se nalaze plocice, trenirao
-       sam sve borilacke sportove. Zamisli 200 000 Kristijana da vuku kamen od 200 tona, pa popeli bi 
-       boing 747 a ne kamen. Ja samo poceo da treniram da bijem ljde po ulic sto je bilo totalno pogresno
-       ali mi je donelo neku titulu nepopedivog
+        <p>Uživanje u Hotelu Tišina ne završava se na smeštaju, već se nastavlja kroz
+          pažljivo osmišljene doživljaje koji neguju dušu i telo. Gosti se mogu 
+          prepustiti meditaciji u specijalno dizajniranom vrtu, uživati u tretmanima sa
+          lokalnim biljnim uljima u wellness centru, ili istraživati obližnje staze 
+          uz pratnju vodiča za posmatranje ptica. Gastronomska ponada ističe se
+          organskim proizvodima iz sopstvenog vrta i domaćim specijalitetima, 
+          serviranim u restoranu sa panoramskim prozorima. Boravak u Hotelu Tišina je 
+          više od odmora – to je transformativno iskustvo koje vraća ravnotežu i 
+          energiju.
 </p>
       </div>
       <div className="image">

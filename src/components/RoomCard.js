@@ -14,7 +14,7 @@ const RoomCard = ({ room, onClick, user, onDelete, onEdit }) => {
       style={{ position: 'relative' }} 
     >
       <img src={room.img} alt={room.title} />
-      <p>{room.title}</p>
+      <p>{room.room_type || room.title}</p>
       <div className="overlay">
         <button className="details-button">Detaljniji opis</button>
       </div>

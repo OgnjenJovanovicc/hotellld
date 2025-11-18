@@ -7,9 +7,14 @@ const Slider = ({ backgroundImages, currentIndex, handleNext, handlePrev, goToSl
       style={{
         backgroundImage: `url(${backgroundImages[currentIndex]})`,
         backgroundSize: "cover",
+        width: "88%",
         backgroundPosition: "center",
-        height: "100vh",
+        height: "75vh",
+        margin: "auto",
         position: "relative",
+        borderRadius: "10px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.8)",
+        transition: "background-image 0.5s ease-in-out",
       }}
     >
       <div className="slider-controls">

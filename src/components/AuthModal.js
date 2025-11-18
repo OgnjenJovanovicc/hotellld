@@ -3,7 +3,37 @@ import React from 'react';
 const AuthModal = ({ isLoginForm, closeModal, handleLogin, handleRegister, setIsLoginForm }) => (
   <div className="modal">
     <div className="modal-content">
-      <button className="close-button" onClick={closeModal}>×</button>
+      <button 
+        onClick={closeModal} 
+        style={{ 
+          position: "absolute", 
+          top: 12, 
+          right: 12, 
+          fontSize: 32, 
+          fontWeight: 300, 
+          background: "#f0f0f0", 
+          border: "2px solid #e0e0e0", 
+          cursor: "pointer", 
+          width: 48, 
+          height: 48, 
+          borderRadius: "50%", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          color: "#333", 
+          transition: "all 0.2s ease" 
+        }} 
+        onMouseEnter={(e) => { 
+          e.target.style.background = "#ff6b6b"; 
+          e.target.style.borderColor = "#ff6b6b"; 
+          e.target.style.color = "#fff"; 
+        }} 
+        onMouseLeave={(e) => { 
+          e.target.style.background = "#f0f0f0"; 
+          e.target.style.borderColor = "#e0e0e0"; 
+          e.target.style.color = "#333"; 
+        }}
+      >×</button>
       {isLoginForm ? (
         <div>
           <h2>Login</h2>

@@ -4,6 +4,7 @@
   color: white;
   display: flex;
   flex-direction: column;
+  max-height: 900px;
 }
 
 .heroSection {
@@ -197,14 +198,19 @@
   
   .roomText {
       flex: 1;
-      overflow-y: hidden;
-      transition: all 0.3s ease;
+      overflow: hidden;
+      transition: all 0.18s ease;
       color: #ccc;
       padding-right:30px;
+      /* keep a fixed visual height so toggling text doesn't shift layout */
+      height: 300px;
+      max-height: 300px;
   }
   .roomText.expanded {
-    overflow-y: auto; 
-    max-height: 400px; 
+    /* allow internal scrolling but keep outer box size constant */
+    overflow-y: auto;
+    height: 200px;
+    max-height:180px;
   }
   
   .roomText.expanded::-webkit-scrollbar {
@@ -447,12 +453,13 @@
   box-sizing: border-box;
 }
 
-.buttonGroup {
+  .buttonGroup {
   border-radius: 8px;
   padding: 10px 20px;
   font-weight: bold;
   transition: background 0.3s ease;
-  
+  /* keep buttons anchored at bottom of column so text changes don't move them */
+  margin-top: auto;
 }
 .buttonRow {
   display: flex;
@@ -533,6 +540,12 @@ border: none !important;
   justify-content: center;
   text-decoration: none;
   box-sizing: border-box;
+  /* keep buttons visually consistent when text changes */
+  min-width: 170px;
+  white-space: nowrap;
+  /* prevent flexbox from resizing buttons */
+  flex: 0 0 160px;
+  width: 160px;
 }
 
 .buttonGroup button:first-child {
@@ -548,6 +561,18 @@ border: none !important;
 
 .buttonGroup button:hover {
   opacity: 0.9;
+}
+
+/* On small screens allow buttons to be full width and wrap text */
+@media (max-width: 520px) {
+  .buttonGroup button, .buttonGroup a {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    white-space: normal;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
 }
 .disabledNextButton {
   background-color: #6c757d !important;

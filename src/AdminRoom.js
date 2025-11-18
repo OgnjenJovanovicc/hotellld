@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode, onEditRoomSubmit }) => {
   // Ako dobijamo formValues i onFormChange iz propsa, koristimo ih, inače koristimo lokalni state (radi kompatibilnosti)
@@ -78,13 +79,13 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
     try {
       const response = await axios.post("http://localhost:5000/api/rooms", roomData);
       if (response.status === 201) {
-        alert("Soba uspešno dodata!");
+        toast.success("Soba uspešno dodata!");
         if (onRoomAdded) onRoomAdded(response.data);
         if (onClose) onClose();
       }
     } catch (err) {
       console.error(err);
-      alert("Greška prilikom dodavanja sobe");
+      toast.error("Greška prilikom dodavanja sobe");
     }
   };
 

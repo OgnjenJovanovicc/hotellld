@@ -234,6 +234,9 @@ useEffect(() => {
       }
       toast.success(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
       setFormVisible(false);
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
     } catch (error) {
       console.error('Greška:', error);
       toast.error(error.message || 'Došlo je do greške pri čuvanju rezervacije. Pokušajte ponovo.');
@@ -271,6 +274,9 @@ useEffect(() => {
     } else {
       toast.success(`Rezervacija uspešno sačuvana! Broj rezervacije: ${data.reservation_id}`);
       setFormVisible(false);
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
     }
   };
 
