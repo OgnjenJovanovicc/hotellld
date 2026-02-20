@@ -20,6 +20,7 @@ import 'aos/dist/aos.css';
 const rooms = [
 
 ];
+//TEST
 
 const minRoomPrice = 0;
 const maxRoomPrice = 680;
@@ -93,7 +94,7 @@ function App() {
       }
     } catch (error) {
       console.error("Greška prilikom registracije:", error);
-      toast.error("Došlo je do greške prilikom registracije, roverite uneste podatke!!!.");
+      toast.error("Došlo je do greške prilikom registracije, proverite uneste podatke!!!.");
     }
   };
 
@@ -428,7 +429,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
           const normA = a.toLowerCase().replace(/-/g, '').replace(/\s/g, '');
           if (!roomAmenities.some(amen => amen.includes(normA))) return false;
         }
-      }
+      }   
       if (filters.startDate && filters.endDate) {
         if (Array.isArray(room.bookings)) {
           const start = new Date(filters.startDate);
