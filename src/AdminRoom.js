@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import "./AdminRooms.css";
 
 const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode, onEditRoomSubmit }) => {
-  // Ako dobijamo formValues i onFormChange iz propsa, koristimo ih, inače koristimo lokalni state (radi kompatibilnosti)
   const isControlled = !!formValues && !!onFormChange;
   const [localState, setLocalState] = useState({
     roomNumber: "",
@@ -22,7 +22,6 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
     total_units: ""
   });
 
-  // Sync local state sa propsima ako se koristi controlled
   useEffect(() => {
     if (isControlled) return;
     setLocalState({
@@ -41,23 +40,24 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
       reviews_comment: "",
       total_units: ""
     });
-  }, [onClose]);
+  }, [onClose, isControlled]);
 
-  const getValue = (field) => isControlled ? formValues[field] : localState[field];
+  const getValue = (field) => (isControlled ? formValues[field] : localState[field]);
   const setValue = (field, value) => {
     if (isControlled) {
       onFormChange(field, value);
-    } else {
-      setLocalState(prev => ({ ...prev, [field]: value }));
+      return;
     }
+    setLocalState((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isEditMode && typeof onEditRoomSubmit === 'function') {
+    if (isEditMode && typeof onEditRoomSubmit === "function") {
       onEditRoomSubmit();
       return;
     }
+
     const roomData = {
       room_number: getValue("roomNumber") ? parseInt(getValue("roomNumber"), 10) : undefined,
       room_type: getValue("roomType"),
@@ -65,7 +65,7 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
       description: getValue("description"),
       long_description: getValue("longDescription"),
       price_per_night: getValue("price_per_night") ? parseFloat(getValue("price_per_night")) : undefined,
-      amenities: getValue("amenities").trim() ? getValue("amenities").split(",").map(a => a.trim()) : [],
+      amenities: getValue("amenities").trim() ? getValue("amenities").split(",").map((a) => a.trim()) : [],
       image_url: getValue("image_url"),
       weekendPrice: getValue("weekendPrice"),
       discount: getValue("discount"),
@@ -76,162 +76,189 @@ const AdminRoom = ({ onRoomAdded, onClose, formValues, onFormChange, isEditMode,
       },
       total_units: getValue("total_units") ? parseInt(getValue("total_units"), 10) : undefined
     };
+
     try {
       const response = await axios.post("http://localhost:5000/api/rooms", roomData);
       if (response.status === 201) {
-        toast.success("Soba uspešno dodata!");
+        toast.success("Soba uspesno dodata!");
         if (onRoomAdded) onRoomAdded(response.data);
         if (onClose) onClose();
       }
     } catch (err) {
       console.error(err);
-      toast.error("Greška prilikom dodavanja sobe");
+      toast.error("Greska prilikom dodavanja sobe");
     }
   };
 
   return (
-    <div style={{
-      background: '#fff',
-      borderRadius: '16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-      maxWidth: 400,
-      width: '100%',
-      margin: '0 auto',
-      padding: '32px 32px 24px 32px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-    }}>
-      <h2 style={{
-        textAlign: 'center',
-        marginBottom: 24,
-        fontSize: '2rem',
-        fontWeight: 600,
-        color: '#222',
-      }}>{isEditMode ? 'Izmeni sobu' : 'Dodaj sobu'}</h2>
-      <form style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }} onSubmit={handleSubmit}>
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("roomNumber")}
-          onChange={(e) => setValue("roomNumber", e.target.value)}
-          placeholder="Broj sobe"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("roomType")}
-          onChange={(e) => setValue("roomType", e.target.value)}
-          placeholder="Tip sobe"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("capacity")}
-          onChange={(e) => setValue("capacity", e.target.value)}
-          placeholder="Kapacitet"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("description")}
-          onChange={(e) => setValue("description", e.target.value)}
-          placeholder="Opis"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("price_per_night")}
-          onChange={(e) => setValue("price_per_night", e.target.value)}
-          placeholder="Cena po noći"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("longDescription")}
-          onChange={(e) => setValue("longDescription", e.target.value)}
-          placeholder="Duži opis"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("amenities")}
-          onChange={(e) => setValue("amenities", e.target.value)}
-          placeholder="Sadržaji (odvojeni zarezom)"
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("image_url")}
-          onChange={(e) => setValue("image_url", e.target.value)}
-          placeholder="URL slike sobe"
-          required
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("weekendPrice")}
-          onChange={(e) => setValue("weekendPrice", e.target.value)}
-          placeholder="Cena za vikend"
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("discount")}
-          onChange={(e) => setValue("discount", e.target.value)}
-          placeholder="Popust (npr. 10% za 7+ noći)"
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("reviews_rating")}
-          onChange={(e) => setValue("reviews_rating", e.target.value)}
-          placeholder="Ocena (rating)"
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("reviews_count")}
-          onChange={(e) => setValue("reviews_count", e.target.value)}
-          placeholder="Broj recenzija (count)"
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="text"
-          value={getValue("reviews_comment")}
-          onChange={(e) => setValue("reviews_comment", e.target.value)}
-          placeholder="Komentar recenzije"
-        />
-        <input
-          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: '1rem', outline: 'none', marginBottom: 0 }}
-          type="number"
-          value={getValue("total_units")}
-          onChange={(e) => setValue("total_units", e.target.value)}
-          placeholder="Ukupan broj jedinica (total_units)"
-          required
-        />
-        <button
-          type="submit"
-          style={{
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: 12,
-            fontSize: '1.1rem',
-            fontWeight: 500,
-            marginTop: 10,
-            cursor: 'pointer',
-            transition: 'background 0.2s',
-          }}
-        >
-          {isEditMode ? 'Izmeni sobu' : 'Dodaj sobu'}
+    <div className="admin-room-card">
+      <h2 className="admin-room-title">{isEditMode ? "Izmeni sobu" : "Dodaj sobu"}</h2>
+
+      <form className="admin-room-form" onSubmit={handleSubmit}>
+        <div className="admin-room-grid">
+          <label className="admin-room-field">
+            <span>Broj sobe</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="1"
+              value={getValue("roomNumber")}
+              onChange={(e) => setValue("roomNumber", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Tip sobe</span>
+            <input
+              className="admin-room-input"
+              type="text"
+              value={getValue("roomType")}
+              onChange={(e) => setValue("roomType", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Kapacitet</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="1"
+              value={getValue("capacity")}
+              onChange={(e) => setValue("capacity", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Ukupan broj jedinica</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="1"
+              value={getValue("total_units")}
+              onChange={(e) => setValue("total_units", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Cena po noci</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="0"
+              step="0.01"
+              value={getValue("price_per_night")}
+              onChange={(e) => setValue("price_per_night", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Cena za vikend</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="0"
+              step="0.01"
+              value={getValue("weekendPrice")}
+              onChange={(e) => setValue("weekendPrice", e.target.value)}
+            />
+          </label>
+
+          <label className="admin-room-field admin-room-field-full">
+            <span>URL slike</span>
+            <input
+              className="admin-room-input"
+              type="text"
+              value={getValue("image_url")}
+              onChange={(e) => setValue("image_url", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field admin-room-field-full">
+            <span>Kratak opis</span>
+            <textarea
+              className="admin-room-input admin-room-textarea"
+              rows={3}
+              value={getValue("description")}
+              onChange={(e) => setValue("description", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field admin-room-field-full">
+            <span>Duzi opis</span>
+            <textarea
+              className="admin-room-input admin-room-textarea"
+              rows={5}
+              value={getValue("longDescription")}
+              onChange={(e) => setValue("longDescription", e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="admin-room-field admin-room-field-full">
+            <span>Sadrzaji (odvojeni zarezom)</span>
+            <input
+              className="admin-room-input"
+              type="text"
+              value={getValue("amenities")}
+              onChange={(e) => setValue("amenities", e.target.value)}
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Popust</span>
+            <input
+              className="admin-room-input"
+              type="text"
+              value={getValue("discount")}
+              onChange={(e) => setValue("discount", e.target.value)}
+              placeholder="npr. 10% za 7+ noci"
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Ocena</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              value={getValue("reviews_rating")}
+              onChange={(e) => setValue("reviews_rating", e.target.value)}
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Broj recenzija</span>
+            <input
+              className="admin-room-input"
+              type="number"
+              min="0"
+              value={getValue("reviews_count")}
+              onChange={(e) => setValue("reviews_count", e.target.value)}
+            />
+          </label>
+
+          <label className="admin-room-field">
+            <span>Komentar recenzije</span>
+            <input
+              className="admin-room-input"
+              type="text"
+              value={getValue("reviews_comment")}
+              onChange={(e) => setValue("reviews_comment", e.target.value)}
+            />
+          </label>
+        </div>
+
+        <button className="admin-room-submit" type="submit">
+          {isEditMode ? "Sacuvaj izmene" : "Dodaj sobu"}
         </button>
       </form>
     </div>

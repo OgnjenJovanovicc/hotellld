@@ -4,7 +4,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import { FaPlus, FaMinus } from 'react-icons/fa';
+import { FaPlus, FaMinus, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import styles from './ReservationPage.module.css';
 import Tooltip from '@mui/material/Tooltip';
 import  {LinearProgress, Box, Typography } from '@mui/material';
@@ -98,6 +98,25 @@ const ReservationPage = () => {
   const [cardError, setCardError] = useState('');
   const roomType = room?.room_type || room?.type;
   const [showStripe, setShowStripe] = useState(false);
+  const galleryImages = React.useMemo(() => {
+    if (Array.isArray(room?.images) && room.images.length > 0) return room.images;
+    if (Array.isArray(room?.gallery) && room.gallery.length > 0) return room.gallery;
+    if (Array.isArray(room?.photos) && room.photos.length > 0) return room.photos;
+    return room?.img ? [room.img] : [];
+  }, [room]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [room?.id, galleryImages.length]);
+
+  useEffect(() => {
+    if (galleryImages.length <= 1) return undefined;
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    }, 4000);
+    return () => clearInterval(intervalId);
+  }, [galleryImages.length]);
 
 
 const shouldDisableDate = (date) => {
@@ -355,7 +374,44 @@ useEffect(() => {
 
     <div className={styles.roomDetails}>
       <div className={styles.roomBox}>
-        <img className={styles.roomImg} src={room.img} alt={room.title} />
+        <div className={styles.roomGallery}>
+          <img
+            className={styles.roomImg}
+            src={galleryImages[currentImageIndex] || room.img}
+            alt={`${room.title} ${currentImageIndex + 1}`}
+          />
+          {galleryImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                className={`${styles.galleryNav} ${styles.galleryPrev}`}
+                onClick={() => setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)}
+                aria-label="Prethodna slika"
+              >
+                <FaChevronLeft />
+              </button>
+              <button
+                type="button"
+                className={`${styles.galleryNav} ${styles.galleryNext}`}
+                onClick={() => setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)}
+                aria-label="Sledeća slika"
+              >
+                <FaChevronRight />
+              </button>
+              <div className={styles.galleryDots}>
+                {galleryImages.map((_, index) => (
+                  <button
+                    key={`dot-${index}`}
+                    type="button"
+                    className={`${styles.galleryDot} ${index === currentImageIndex ? styles.galleryDotActive : ''}`}
+                    onClick={() => setCurrentImageIndex(index)}
+                    aria-label={`Prikaži sliku ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         <div className={styles.roomInfo}>
         <div className={styles.amenities}>
         {room?.amenities?.map((item, index) => (
@@ -365,12 +421,9 @@ useEffect(() => {
 </div>
           <h2>{room.title}</h2>
           <div className={`${styles.roomText} ${showMore ? styles.expanded : styles.scrollText}`}>
-              {showMore ? (
-              <p className={`${styles.roomDescription} ${styles.roomDescriptionFade}`}>
-                {room.longDescription}</p>
-                ) : (
-              <p>{room.description}</p>
-                )}
+              <p className={`${styles.roomDescription} ${showMore ? '' : styles.roomDescriptionFade}`}>
+                {showMore ? (room.longDescription || room.description) : room.description}
+              </p>
           </div>
           <div className={styles.priceBox}>
           Cena:  <strong>{room.price}€</strong> po noći

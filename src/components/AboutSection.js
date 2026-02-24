@@ -2,38 +2,60 @@ import React from 'react';
 
 const AboutSection = ({ images }) => (
   <section id="about" className="about-section">
+    <div className="about-header" data-aos="fade-up">
+      <span className="about-kicker">Hotel Tisina</span>
+      <h2>Mesto gde odmor stvarno pocinje</h2>
+      <p>
+        Dizajnirali smo prostor koji kombinuje prirodu, privatnost i moderan komfor
+        kako bi svaki trenutak boravka bio opusten i inspirativan.
+      </p>
+    </div>
+
     <div className="about-part reverse" data-aos="fade-left">
       <div className="image">
-        <img src={images[0]} alt="Hotel slika 2" />
+        <img src={images[0]} alt="Eksterijer hotela Tisina" />
       </div>
       <div className="text">
         <h2>O nama</h2>
-        <p>Hotel Tišina predstavlja utočište savremenog čoveka u žurbi, oaza mira 
-          skrivena u naručju prirode. Smešten daleko od gradske buke, ovaj hotel 
-          nudi gostima jedinstvenu priliku da se potpuno odvoje i prepuste blagodetima
-          tišine. Prostrane sobe opremljene su u zemljanim tonovima i prirodnim 
-          materijalima, stvarajući atmosferu topline i jednostavnosti, dok se sa svakog
-          balkona pruža pogled na more i netaknutu prirodu. Ovde je 
-          glavna prednost upravo odsustvo zvuka – samo zvuk talsa koji neprekidno zapljsuk
-          uju obalu plaže. </p>
+        <p>
+          Hotel Tisina je mirna oaza udaljena od gradske guzve, stvorena za goste koji
+          zele kvalitetan odmor i tempo bez stresa. Enterijer je inspirisan prirodnim
+          materijalima i toplim tonovima, dok svaki apartman pruza otvoren pogled i
+          osecaj potpune privatnosti.
+        </p>
+        <ul className="about-highlights">
+          <li>Prostrane sobe sa panoramskim pogledom</li>
+          <li>Smiren ambijent i diskretna usluga</li>
+          <li>Prirodni materijali i premium udobnost</li>
+        </ul>
       </div>
     </div>
+
     <div className="about-part" data-aos="fade-right">
       <div className="text">
-        <h2>Naša misija</h2>
-        <p>Uživanje u Hotelu Tišina ne završava se na smeštaju, već se nastavlja kroz
-          pažljivo osmišljene doživljaje koji neguju dušu i telo. Gosti se mogu 
-          prepustiti meditaciji u specijalno dizajniranom vrtu, uživati u tretmanima sa
-          lokalnim biljnim uljima u wellness centru, ili istraživati obližnje staze 
-          uz pratnju vodiča za posmatranje ptica. Gastronomska ponada ističe se
-          organskim proizvodima iz sopstvenog vrta i domaćim specijalitetima, 
-          serviranim u restoranu sa panoramskim prozorima. Boravak u Hotelu Tišina je 
-          više od odmora – to je transformativno iskustvo koje vraća ravnotežu i 
-          energiju.
-</p>
+        <h2>Nasa misija</h2>
+        <p>
+          Verujemo da luksuz nije samo izgled prostora, vec i nacin na koji se gost
+          oseca. Zato gradimo iskustvo koje spaja odmor, wellness i lokalnu gastronomiju
+          kako biste se kuci vratili sa vise energije, fokusa i balansa.
+        </p>
+        <div className="about-stats" aria-label="Kljucevi kvaliteta hotela">
+          <div className="about-stat">
+            <strong>24/7</strong>
+            <span>podrska gosta</span>
+          </div>
+          <div className="about-stat">
+            <strong>100%</strong>
+            <span>fokus na komfor</span>
+          </div>
+          <div className="about-stat">
+            <strong>Top</strong>
+            <span>wellness iskustvo</span>
+          </div>
+        </div>
       </div>
       <div className="image">
-        <img src={images[1]} alt="Hotel slika 2" />
+        <img src={images[1]} alt="Relax zona i pogled iz hotela" />
       </div>
     </div>
   </section>

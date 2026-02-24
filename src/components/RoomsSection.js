@@ -1,9 +1,18 @@
 import React from 'react';
 import RoomCard from './RoomCard';
 
-const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, onReserve, onDeleteRoom, onEditRoom }) => {
-  const handleScrollToRoomDetails = () => {  
-      detailsRef.current.scrollIntoView({ behavior: 'smooth' });
+const RoomsSection = ({
+  rooms,
+  handleDetails,
+  selectedRoom,
+  detailsRef,
+  user,
+  onReserve,
+  onDeleteRoom,
+  onEditRoom,
+}) => {
+  const handleScrollToRoomDetails = () => {
+    detailsRef.current.scrollIntoView({ behavior: 'smooth' });
   };
 
   React.useEffect(() => {
@@ -18,9 +27,13 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
   }, [user]);
 
   return (
-    <section id="rooms">
-      <h2>Sobe</h2>
-      <p>Pogledajte naše sobe...</p>
+    <section id="rooms" className="rooms-section">
+      <div className="rooms-head" data-aos="fade-up">
+        <span className="rooms-kicker">SMESTAJ</span>
+        <h2>Sobe</h2>
+        <p>Izaberite sobu koja najbolje odgovara vasem stilu putovanja i odmora.</p>
+      </div>
+
       {selectedRoom && (
         <div className="room-details" ref={detailsRef}>
           <img src={selectedRoom.img} alt={selectedRoom.title} />
@@ -29,10 +42,12 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
             <p>{selectedRoom.description}</p>
             <div className="button-container">
               {user ? (
-                <button className="reserve-button" onClick={() => onReserve(selectedRoom)}>Rezervišite sobu</button>
+                <button className="reserve-button" onClick={() => onReserve(selectedRoom)}>
+                  Rezervisite sobu
+                </button>
               ) : (
                 <p className="login-reminder">
-                  <em>Morate se prijaviti da bi rezervisali sobu.</em>
+                  <em>Morate se prijaviti da biste rezervisali sobu.</em>
                 </p>
               )}
               <button className="close-button" onClick={() => handleDetails(null)}>
@@ -42,6 +57,7 @@ const RoomsSection = ({ rooms, handleDetails, selectedRoom, detailsRef, user, on
           </div>
         </div>
       )}
+
       <div className="rooms-grid">
         {rooms.map((room) => (
           <RoomCard

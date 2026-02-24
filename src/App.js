@@ -162,19 +162,42 @@ function App() {
 
   const [dynamicRooms, setDynamicRooms] = useState([]);
 
+  const getRoomGallery = (room, primaryImage) => {
+    const apiImages = Array.isArray(room?.images) ? room.images.filter(Boolean) : [];
+    if (apiImages.length > 0) return apiImages;
+
+    const normalized = `${room?.room_type || room?.type || ''} ${room?.title || ''}`.toLowerCase();
+    const byType = {
+      family: ['/assest/family.webp', '/assest/rooms.jpg', '/assest/krevet1.webp'],
+      economic: ['/assest/economic.webp', '/assest/krevet22.jpg', '/assest/krevet2.jpg'],
+      penthouse: ['/assest/penthouse.webp', '/assest/planinasoba.webp', '/assest/slika11.jpg'],
+      deluxe: ['/assest/planinasoba.webp', '/assest/slika10.jpg', '/assest/slika9.jpg'],
+      studio: ['/assest/krevet23.webp', '/assest/slika6.jpg', '/assest/slika7.jpg']
+    };
+
+    const matched = Object.keys(byType).find((key) => normalized.includes(key));
+    const fallback = matched ? byType[matched] : ['/assest/rooms.jpg', '/assest/hotel.webp', '/assest/reservation.jpg'];
+
+    return [primaryImage, ...fallback].filter(Boolean);
+  };
+
 
 useEffect(() => {
   setIsLoading(true); 
   axios.get("http://localhost:5000/api/rooms") 
     .then(response => {
-      const formattedRooms = response.data.map(dbRoom => ({
-        ...dbRoom,
-        id: dbRoom.id || dbRoom.room_id || `db_${dbRoom.room_number}_${Date.now()}_${Math.random()}`,
-        img: dbRoom.img || dbRoom.image_url,
-        title: dbRoom.title || `Soba ${dbRoom.room_number}`,
-        price: dbRoom.price || dbRoom.price_per_night,
-        longDescription: dbRoom.long_description || dbRoom.long_description || "",
-      }));
+      const formattedRooms = response.data.map((dbRoom) => {
+        const img = dbRoom.img || dbRoom.image_url;
+        return {
+          ...dbRoom,
+          id: dbRoom.id || dbRoom.room_id || `db_${dbRoom.room_number}_${Date.now()}_${Math.random()}`,
+          img,
+          images: getRoomGallery(dbRoom, img),
+          title: dbRoom.title || `Soba ${dbRoom.room_number}`,
+          price: dbRoom.price || dbRoom.price_per_night,
+          longDescription: dbRoom.long_description || dbRoom.long_description || "",
+        };
+      });
       setAllRooms(formattedRooms);
       setAllRoomsBackup(formattedRooms);
       setTimeout(() => setIsLoading(false), 2500); 
@@ -212,14 +235,18 @@ useEffect(() => {
   useEffect(() => {
     if (filters.startDate && filters.endDate) {
 axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startDate}&end_date=${filters.endDate}`)        .then(res => {
-          const formattedRooms = res.data.map(dbRoom => ({
-            ...dbRoom,
-            id: dbRoom.id || dbRoom.room_id || `db_${dbRoom.room_number}_${Date.now()}_${Math.random()}`,
-            img: dbRoom.img || dbRoom.image_url,
-            title: dbRoom.title || `Soba ${dbRoom.room_number}`,
-            price: dbRoom.price || dbRoom.price_per_night,
-            longDescription: dbRoom.long_description || dbRoom.long_description || "",
-          }));
+          const formattedRooms = res.data.map((dbRoom) => {
+            const img = dbRoom.img || dbRoom.image_url;
+            return {
+              ...dbRoom,
+              id: dbRoom.id || dbRoom.room_id || `db_${dbRoom.room_number}_${Date.now()}_${Math.random()}`,
+              img,
+              images: getRoomGallery(dbRoom, img),
+              title: dbRoom.title || `Soba ${dbRoom.room_number}`,
+              price: dbRoom.price || dbRoom.price_per_night,
+              longDescription: dbRoom.long_description || dbRoom.long_description || "",
+            };
+          });
           setAllRooms(formattedRooms);
         })
         .catch(err => {
@@ -495,46 +522,46 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
         />
               <main>
             <AboutSection className="fade-in" images={[hotelimage, reservation]} />
-            <div className="rooms-layout" style={{ display: 'flex', alignItems: 'center', gap: '48px', maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
+            <div className="rooms-layout" style={{ display: 'flex', alignItems: 'flex-start', gap: '30px', maxWidth: '1600px', margin: '0 auto 50px auto', padding: '0 20px 36px 20px' }}>
               {/* Sidebar filteri */}
-              <aside className="filter-sidebar" style={{ minWidth: 340, maxWidth: 400, background: 'linear-gradient(135deg, #f8fafc 80%, #e0e7ef 100%)', borderRadius: 28, boxShadow: '0 8px 32px rgba(0,0,0,0.13)', padding: '36px 24px', paddingLeft: '40px', marginLeft: '32px', alignSelf: 'center', backdropFilter: 'blur(8px)', border: '1.5px solid #e5e7eb', position: 'relative' }}>
-                <h2 style={{ fontSize: 26, marginBottom: 22, color: '#222', fontWeight: 700, letterSpacing: '1px', textAlign: 'center', fontFamily: 'Inter, Playfair Display, serif' }}>Filtriraj sobe</h2>
-                <form className="filter-form" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <aside className="filter-sidebar" style={{ minWidth: 310, maxWidth: 370, background: 'linear-gradient(155deg, #f8fafc 75%, #e8eef8 100%)', borderRadius: 22, boxShadow: '0 10px 28px rgba(15,23,42,0.13)', padding: '22px 16px', marginLeft: '16px', alignSelf: 'flex-start', backdropFilter: 'blur(8px)', border: '1.5px solid #e5e7eb', position: 'sticky', top: 92, maxHeight: '78vh', overflowY: 'auto' }}>
+                <h2 style={{ fontSize: 22, marginBottom: 14, color: '#1f2937', fontWeight: 800, letterSpacing: '0.5px', textAlign: 'center', fontFamily: 'Inter, Playfair Display, serif' }}>Filtriraj sobe</h2>
+                <form className="filter-form" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {/* Cena po noći */}
-                  <div className="filter-modal-group" style={{ marginBottom: 18 }}>
-                    <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 17, color: '#222', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span role="img" aria-label="novac" style={{ fontSize: 22, color: '#d4af37' }}>💶</span>
+                  <div className="filter-modal-group" style={{ marginBottom: 8 }}>
+                    <label className="filter-modal-label" style={{ fontWeight: 700, fontSize: 15, color: '#1f2937', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span role="img" aria-label="novac" style={{ fontSize: 19, color: '#d4af37' }}>💶</span>
                       Maksimalna cena po noći
                     </label>
-                    <div className="price-slider-wrapper" style={{ marginTop: 8 }}>
-                      <span style={{ color: '#888', fontSize: 15, minWidth: 32, alignSelf: 'flex-end' }}>{minRoomPrice} €</span>
-                      <div className="price-slider-bubble" style={{ left: '50%', transform: 'translateX(-50%)', background: '#fff', color: '#d4af37', fontWeight: 700, fontSize: 20, borderRadius: 18, border: '2px solid #d4af37', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', minWidth: 70 }}>{filters.maxPrice} €</div>
+                    <div className="price-slider-wrapper" style={{ marginTop: 4 }}>
+                      <span style={{ color: '#6b7280', fontSize: 13, minWidth: 28, alignSelf: 'flex-end' }}>{minRoomPrice} €</span>
+                      <div className="price-slider-bubble" style={{ left: '50%', transform: 'translateX(-50%)', background: '#fff', color: '#d4af37', fontWeight: 700, fontSize: 16, borderRadius: 16, border: '2px solid #d4af37', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', minWidth: 58 }}>{filters.maxPrice} €</div>
                       <input type="range" name="maxPrice" min={minRoomPrice} max={maxRoomPrice} value={filters.maxPrice} onChange={handlePriceRangeChange} className="price-slider" style={{ accentColor: '#d4af37', width: '100%' }} />
-                      <span style={{ color: '#888', fontSize: 15, minWidth: 32, alignSelf: 'flex-end' }}>{maxRoomPrice} €</span>
+                      <span style={{ color: '#6b7280', fontSize: 13, minWidth: 28, alignSelf: 'flex-end' }}>{maxRoomPrice} €</span>
                     </div>
                   </div>
                   {/* Kapacitet */}
                   <div className="filter-modal-group">
-                    <label className="filter-modal-label" style={{ fontWeight: 500, fontSize: 15, marginBottom: 2 }}>Kapacitet:</label>
-                    <input type="number" name="capacity" min="1" value={filters.capacity} onChange={handleFilterChange} className="filter-modal-input" style={{ padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 15, marginBottom: 2, background: '#f3f4f6', transition: 'box-shadow 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }} />
+                    <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, color: '#334155' }}>Kapacitet:</label>
+                    <input type="number" name="capacity" min="1" value={filters.capacity} onChange={handleFilterChange} className="filter-modal-input" style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d8dee8', fontSize: 14, marginBottom: 2, background: '#f8fafc', transition: 'box-shadow 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }} />
                   </div>
                   {/* Period boravka */}
                   <div className="filter-modal-group">
-                    <label className="filter-modal-label" style={{ fontWeight: 500, fontSize: 15, marginBottom: 2 }}>Datum početka:</label>
-                    <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="filter-modal-input" style={{ padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 15, background: '#f3f4f6', marginBottom: 2 }} />
+                    <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, color: '#334155' }}>Datum početka:</label>
+                    <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="filter-modal-input" style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d8dee8', fontSize: 14, background: '#f8fafc', marginBottom: 2 }} />
                   </div>
                   <div className="filter-modal-group">
-                    <label className="filter-modal-label" style={{ fontWeight: 500, fontSize: 15, marginBottom: 2 }}>Datum završetka:</label>
-                    <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="filter-modal-input" style={{ padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 15, background: '#f3f4f6', marginBottom: 2 }} />
+                    <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, color: '#334155' }}>Datum završetka:</label>
+                    <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="filter-modal-input" style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d8dee8', fontSize: 14, background: '#f8fafc', marginBottom: 2 }} />
                   </div>
                   {/* Pogodnosti */}
                   <div className="filter-modal-group">
-                    <label className="filter-modal-label" style={{ fontWeight: 500, fontSize: 15, marginBottom: 2 }}>Usluge i pogodnosti:</label>
-                    <div className="filter-modal-amenities" style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                    <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, color: '#334155' }}>Usluge i pogodnosti:</label>
+                    <div className="filter-modal-amenities" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6 }}>
                       {amenityOptions.map((a) => (
-                        <label key={a.label} className={`filter-modal-amenity${filters.amenities.includes(a.label) ? ' active' : ''}`} title={a.tooltip} style={{ background: filters.amenities.includes(a.label) ? '#d4af37' : '#f3f4f6', color: filters.amenities.includes(a.label) ? '#fff' : '#444', borderRadius: 8, padding: '7px 14px', border: '1px solid #e5e7eb', fontSize: 16, fontWeight: 500, cursor: 'pointer', transition: 'background 0.18s, color 0.18s' }}>
-                          <input type="checkbox" name="amenities" value={a.label} checked={filters.amenities.includes(a.label)} onChange={handleFilterChange} style={{ marginRight: 7 }} />
-                          <span className="filter-modal-amenity-icon" style={{ fontSize: 18 }}>{a.icon}</span>
+                        <label key={a.label} className={`filter-modal-amenity${filters.amenities.includes(a.label) ? ' active' : ''}`} title={a.tooltip} style={{ background: filters.amenities.includes(a.label) ? '#d4af37' : '#f3f4f6', color: filters.amenities.includes(a.label) ? '#fff' : '#444', borderRadius: 8, padding: '6px 9px', border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.18s, color 0.18s', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <input type="checkbox" name="amenities" value={a.label} checked={filters.amenities.includes(a.label)} onChange={handleFilterChange} style={{ marginRight: 4 }} />
+                          <span className="filter-modal-amenity-icon" style={{ fontSize: 15 }}>{a.icon}</span>
                           <span>{a.label}</span>
                         </label>
                       ))}
@@ -542,25 +569,25 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
                   </div>
                   {/* Ocena - zvezdice */}
                   <div className="filter-modal-group">
-                    <label className="filter-modal-label" style={{ fontWeight: 500, fontSize: 15, marginBottom: 2 }}>Ocena sobe:</label>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                    <label className="filter-modal-label" style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, color: '#334155' }}>Ocena sobe:</label>
+                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                       {[1,2,3,4,5].map((star) => (
-                        <span key={star} onClick={() => setFilters(prev => ({ ...prev, rating: star === Number(prev.rating) ? '' : star }))} style={{ fontSize: 26, color: star <= Number(filters.rating) ? '#d4af37' : '#bbb', cursor: 'pointer', transition: 'color 0.18s', userSelect: 'none', filter: star <= Number(filters.rating) ? 'drop-shadow(0 1px 2px #d4af3740)' : 'none' }} title={star + ' zvezdica' + (star > 1 ? 'e' : '')}>★</span>
+                        <span key={star} onClick={() => setFilters(prev => ({ ...prev, rating: star === Number(prev.rating) ? '' : star }))} style={{ fontSize: 23, color: star <= Number(filters.rating) ? '#d4af37' : '#bbb', cursor: 'pointer', transition: 'color 0.18s', userSelect: 'none', filter: star <= Number(filters.rating) ? 'drop-shadow(0 1px 2px #d4af3740)' : 'none' }} title={star + ' zvezdica' + (star > 1 ? 'e' : '')}>★</span>
                       ))}
-                      <span onClick={() => setFilters(prev => ({ ...prev, rating: '' }))} style={{ fontSize: 15, color: '#888', marginLeft: 10, cursor: 'pointer', textDecoration: filters.rating === '' ? 'underline' : 'none', alignSelf: 'center' }}>bilo koja</span>
+                      <span onClick={() => setFilters(prev => ({ ...prev, rating: '' }))} style={{ fontSize: 13, color: '#888', marginLeft: 8, cursor: 'pointer', textDecoration: filters.rating === '' ? 'underline' : 'none', alignSelf: 'center' }}>bilo koja</span>
                     </div>
                   </div>
                   {/* Aktivni filteri kao chips */}
-                  <div className="filter-modal-chips-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
-                    {filters.capacity && (<span className="filter-modal-chip" title="Kapacitet" style={{ background: '#e0e7ef', color: '#222', borderRadius: 14, padding: '5px 14px', fontWeight: 500 }}>👥 {filters.capacity}</span>)}
-                    {filters.amenities.map(a => { const found = amenityOptions.find(opt => opt.label === a); return (<span className="filter-modal-chip" key={a} title={found?.tooltip || a} style={{ background: '#d4af37', color: '#fff', borderRadius: 14, padding: '5px 14px', fontWeight: 500 }}>{found?.icon || '✔️'} {a}</span>); })}
-                    {filters.rating && (<span className="filter-modal-chip" title="Ocena" style={{ background: '#e0e7ef', color: '#222', borderRadius: 14, padding: '5px 14px', fontWeight: 500 }}>⭐ {filters.rating}+</span>)}
-                    {filters.maxPrice !== maxRoomPrice && (<span className="filter-modal-chip" title="Maksimalna cena" style={{ background: '#e0e7ef', color: '#222', borderRadius: 14, padding: '5px 14px', fontWeight: 500 }}>💶 {filters.maxPrice} €</span>)}
+                  <div className="filter-modal-chips-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                    {filters.capacity && (<span className="filter-modal-chip" title="Kapacitet" style={{ background: '#e0e7ef', color: '#222', borderRadius: 14, padding: '4px 10px', fontWeight: 600, fontSize: 12 }}>👥 {filters.capacity}</span>)}
+                    {filters.amenities.map(a => { const found = amenityOptions.find(opt => opt.label === a); return (<span className="filter-modal-chip" key={a} title={found?.tooltip || a} style={{ background: '#d4af37', color: '#fff', borderRadius: 14, padding: '4px 10px', fontWeight: 600, fontSize: 12 }}>{found?.icon || '✔️'} {a}</span>); })}
+                    {filters.rating && (<span className="filter-modal-chip" title="Ocena" style={{ background: '#e0e7ef', color: '#222', borderRadius: 14, padding: '4px 10px', fontWeight: 600, fontSize: 12 }}>⭐ {filters.rating}+</span>)}
+                    {filters.maxPrice !== maxRoomPrice && (<span className="filter-modal-chip" title="Maksimalna cena" style={{ background: '#e0e7ef', color: '#222', borderRadius: 14, padding: '4px 10px', fontWeight: 600, fontSize: 12 }}>💶 {filters.maxPrice} €</span>)}
                   </div>
                   {/* Broj rezultata */}
-                  <div className="filter-modal-results-count" style={{ textAlign: 'center', fontSize: 16, color: '#2563eb', fontWeight: 600, margin: '12px 0 8px 0' }}>Pronađeno soba: <b>{filteredRooms.length}</b></div>
-                  <div className="filter-modal-actions" style={{ display: 'flex', gap: 14, marginTop: 10, justifyContent: 'center' }}>
-                    <button type="button" className="add-room-button filter-modal-apply" onClick={handleFilterReset} style={{ background: '#2563eb', color: '#fff', fontWeight: 600, fontSize: 16, borderRadius: 8, padding: '10px 22px', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}>Resetuj</button>
+                  <div className="filter-modal-results-count" style={{ textAlign: 'center', fontSize: 14, color: '#2563eb', fontWeight: 700, margin: '8px 0 4px 0' }}>Pronađeno soba: <b>{filteredRooms.length}</b></div>
+                  <div className="filter-modal-actions" style={{ display: 'flex', gap: 10, marginTop: 6, justifyContent: 'center' }}>
+                    <button type="button" className="add-room-button filter-modal-apply" onClick={handleFilterReset} style={{ background: '#2563eb', color: '#fff', fontWeight: 700, fontSize: 14, borderRadius: 8, padding: '8px 16px', border: 'none', cursor: 'pointer', transition: 'background 0.2s' }}>Resetuj</button>
                   </div>
                 </form>
               </aside>
@@ -568,7 +595,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
               <div style={{ flex: 1, minWidth: 0 }}>
                             {user?.role === 'admin' && (
                 <div className="admin-room-button-wrapper">
-                  <button className="add-room-button" onClick={() => setShowAddRoomForm(true)}>
+                    <button className="add-room-button" onClick={() => setShowAddRoomForm(true)}>
                     ➕ Dodaj novu sobu
                   </button>
                 </div>
@@ -610,7 +637,7 @@ axios.get(`http://localhost:5000/api/rooms/available?start_date=${filters.startD
                   justifyContent: "center",
                   zIndex: 1000
                 }}>
-                  <div style={{ position: "relative", maxHeight: 600, maxWidth: 480, width: "100%", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "32px 24px 24px 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{ position: "relative", maxHeight: "88vh", maxWidth: 980, width: "min(92vw, 980px)", overflowY: "auto", background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "28px 28px 24px 28px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <button onClick={handleAdminRoomClose} style={{ position: "absolute", top: 12, right: 12, fontSize: 32, fontWeight: 300, background: "#f0f0f0", border: "2px solid #e0e0e0", cursor: "pointer", width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#333", transition: "all 0.2s ease" }} onMouseEnter={(e) => { e.target.style.background = "#ff6b6b"; e.target.style.borderColor = "#ff6b6b"; e.target.style.color = "#fff"; }} onMouseLeave={(e) => { e.target.style.background = "#f0f0f0"; e.target.style.borderColor = "#e0e0e0"; e.target.style.color = "#333"; }}>×</button>
                     <AdminRoom
                       formValues={adminRoomForm}

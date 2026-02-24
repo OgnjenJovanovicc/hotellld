@@ -15,6 +15,7 @@ const Slider = ({ backgroundImages, currentIndex, handleNext, handlePrev, goToSl
         borderRadius: "10px",
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.8)",
         transition: "background-image 0.5s ease-in-out",
+        marginTop: "14px",
       }}
     >
       <div className="slider-controls">

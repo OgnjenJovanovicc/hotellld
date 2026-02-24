@@ -5,7 +5,9 @@ import { FaEnvelope, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
  const smoothScroll = (targetId) => {
     const targetElement = document.querySelector(targetId);
     if (targetElement) {
-      const offsetTop = targetElement.offsetTop - 80; 
+      const rect = targetElement.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const offsetTop = rect.top + scrollTop - 80;
       window.scrollTo({
         top: offsetTop,
         behavior: 'smooth'
@@ -79,7 +81,7 @@ const Header = ({ user, openModal, handleLogout }) => {
         ) : (
           <li>
             <button 
-              className="login-button login-btn" 
+            className="login-button login-btn" 
               onClick={openModal}
             >
               <FaSignInAlt className="icon" /> Login
